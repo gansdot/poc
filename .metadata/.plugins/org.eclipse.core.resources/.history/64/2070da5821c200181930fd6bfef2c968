@@ -1,0 +1,12 @@
+package com.poc;
+
+import org.springframework.boot.SpringApplication;
+
+public class SpringBootAuditApplication {
+	
+	public static void main(String[] args) throws Exception {
+		SpringApplication.run(SpringBootAuditApplication.class, args);
+	}
+
+
+}

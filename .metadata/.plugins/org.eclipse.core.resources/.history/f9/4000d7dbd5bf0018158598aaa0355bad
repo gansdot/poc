@@ -1,0 +1,55 @@
+package com.poc.jdbc;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.poc.model.Debit;
+
+@Repository
+public class DebitJdbcRepository {
+
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+	class DebitRowMapper implements RowMapper<Debit> {
+		@Override
+		public Debit mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Debit credit = new Debit();
+			credit.setId(rs.getInt("id"));
+			credit.setName(rs.getString("name"));
+			credit.setStatus(rs.getString("status"));
+			return credit;
+		}
+
+	}
+
+	public List<Debit> findAll() {
+		return jdbcTemplate.query("select * from POC.DEBIT", new DebitRowMapper());
+	}
+
+	public Debit findById(String id) {
+		return jdbcTemplate.queryForObject("select * from POC.DEBIT where id=?", new Object[] { id },
+				new BeanPropertyRowMapper<Debit>(Debit.class));
+	}
+
+	public int deleteById(String id) {
+		return jdbcTemplate.update("delete from POC.DEBIT where id=?", new Object[] { id });
+	}
+
+	public int insert(Debit debit) {
+		return jdbcTemplate.update("insert into POC.DEBIT (id, name, status) " + "values(?,  ?, ?)",
+				new Object[] { debit.getId(), debit.getName(), debit.getStatus() });
+	}
+
+	public int update(Debit debit) {
+		return jdbcTemplate.update("update POC.DEBIT " + " set name = ?, status = ? " + " where id = ?",
+				new Object[] { debit.getName(), debit.getStatus(), debit.getId() });
+	}
+}

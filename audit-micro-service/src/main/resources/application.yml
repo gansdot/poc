@@ -1,0 +1,33 @@
+server:
+  port: 8095
+spring:
+  application:
+    name: audit-service
+  datasource:
+    url: jdbc:h2:file:~/audit;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS POC;
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: sa
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+
+logging:
+  level:
+    com.poc.SpringBootCaseRegistrationApplication: DEBUG
+    com.springframework.web: ERROR
+    com.poc: DEBUG
+  pattern:
+    console: "%d %-5level %logger : %msg%n"
+     
+      
+      
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8090/eureka 
+  instance:
+    instance-id: ${spring.application.name}

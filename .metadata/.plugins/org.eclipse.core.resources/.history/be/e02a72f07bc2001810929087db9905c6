@@ -1,0 +1,55 @@
+package com.poc.jdbc;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+
+import com.poc.model.Credit;
+
+@Repository
+public class CreditJdbcRepository {
+
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+	class CreditRowMapper implements RowMapper<Credit> {
+		@Override
+		public Credit mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Credit credit = new Credit();
+			credit.setId(rs.getInt("id"));
+			credit.setName(rs.getString("name"));
+			credit.setStatus(rs.getString("status"));
+			return credit;
+		}
+
+	}
+
+	public List<Credit> findAll() {
+		return jdbcTemplate.query("select * from POC.CREDIT", new CreditRowMapper());
+	}
+
+	public Credit findById(String id) {
+		return jdbcTemplate.queryForObject("select * from POC.CREDIT where id=?", new Object[] { id },
+				new BeanPropertyRowMapper<Credit>(Credit.class));
+	}
+
+	public int deleteById(String id) {
+		return jdbcTemplate.update("delete from POC.CREDIT where id=?", new Object[] { id });
+	}
+
+	public int insert(Credit credit) {
+		return jdbcTemplate.update("insert into POC.CREDIT (name, status) " + "values(?, ?)",
+				new Object[] { credit.getName(), credit.getStatus() });
+	}
+
+	public int update(Credit credit) {
+		return jdbcTemplate.update("update POC.CREDIT " + " set name = ?, status = ? " + " where id = ?",
+				new Object[] { credit.getName(), credit.getStatus(), credit.getId() });
+	}
+}

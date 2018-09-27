@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: consumer-service
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8090/eureka 
+  instance:
+    instance-id: ${spring.application.name}
+
+server:
+  port: 8095

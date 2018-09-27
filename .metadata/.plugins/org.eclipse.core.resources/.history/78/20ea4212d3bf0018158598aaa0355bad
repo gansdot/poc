@@ -1,0 +1,28 @@
+package com.poc.model;
+
+public class Credit {
+	
+	public Integer getId() {
+		return id;
+	}
+	public void setId(String string) {
+		this.id = string;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	private Integer id;
+	private String status;
+	private String name;
+
+}

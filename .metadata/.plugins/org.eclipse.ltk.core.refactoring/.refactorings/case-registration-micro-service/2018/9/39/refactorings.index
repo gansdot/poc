@@ -1,0 +1,9 @@
+1537770521754	Rename resource 'case-registry-log.xml'
+1537806747730	Delete element
+1537806983228	Delete element
+1537920190336	Copy file
+1537947598133	Rename type 'Utils'
+1537948218510	Rename compilation unit 'Configuration.java'
+1537948346317	Rename package 'com.poc.util'
+1538030006426	Extract method 'buildAudit'
+1538037512757	Extract method 'buildDebitData'

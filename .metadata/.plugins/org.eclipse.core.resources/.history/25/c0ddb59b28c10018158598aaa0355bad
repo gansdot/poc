@@ -1,0 +1,131 @@
+package com.poc.controller;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
+import com.poc.jdbc.CaseRegisterJdbcRepository;
+import com.poc.model.CaseRegister;
+import com.poc.model.DataCollection;
+
+@RestController
+public class CaseRegisterController {
+	
+	
+	
+	static Logger log = LoggerFactory.getLogger(CaseRegisterController.class);
+
+	
+	@Autowired
+	private DiscoveryClient discoveryClient;
+	
+	@Autowired
+	CaseRegisterJdbcRepository repository;
+	
+	@RequestMapping(value = "/register/new", method = RequestMethod.GET)
+	public CaseRegister register() {
+		CaseRegister register = new CaseRegister();
+		String uniqueID = UUID.randomUUID().toString();
+		register.setCaseId(uniqueID);
+		log.debug("unique case id ***************** {} ",uniqueID);
+		register.setName("case-register");
+		register.setStatus("success");
+		repository.insert(register);
+		
+		ResponseEntity<Integer> sfdata = invokeService("/collect/new","datacollect-service",Integer.class,HttpMethod.POST);
+		
+
+		
+		/*if(sfdata.getBody().getStatus().equals("success") && sfdata.getBody().getName().equals("datacollect-service")) {
+			// data collection success and proceed with crediting
+			ResponseEntity<Credit> credit = invokeService("/credit","credit-service",Credit.class,HttpMethod.GET);
+			log.debug("executing the credit service >> ", credit.getBody().getName());
+			
+			//insert entry into  credit audit
+			ResponseEntity<Integer> creditAccount = invokeService("/credit/account","credit-service",Integer.class,HttpMethod.POST);
+			log.debug("credited amount into the account {} ",creditAccount.getBody());
+			
+			
+			if(credit.getBody().getStatus().equals("success") && credit.getBody().getName().equals("credit-service")) {
+				// success with credit 
+				log.debug("credit service execution status {} ", credit.getBody().getStatus());
+
+				ResponseEntity<Debit> debit = invokeService("/debit","debit-service",Debit.class, HttpMethod.GET);
+					if(debit.getBody().getStatus().equals("success") && debit.getBody().getName().equals("debit-service")) {
+						log.debug("debit service execution status {} ", credit.getBody().getStatus());
+
+						// debit success and close the case in SF
+						log.debug("Credit and Debit done successfully and close the case ", debit.getBody().getStatus());
+						
+						
+					}
+			}
+		} else {
+			// data collection failed
+			// update audit
+		}
+
+		System.out.println("sfdata now "+sfdata.getBody().getName());
+*/		return register;
+	}
+	
+	
+	
+	
+	public ResponseEntity<DataCollection> getDataCollector() throws RestClientException, IOException {
+		
+		List<ServiceInstance> instances=discoveryClient.getInstances("datacollect-service");
+		ServiceInstance serviceInstance=instances.get(0);
+		
+		String baseUrl=serviceInstance.getUri().toString();
+		
+		baseUrl=baseUrl+"/collect";
+		
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<DataCollection> response=null;
+		try{
+		response=restTemplate.exchange(baseUrl,
+				HttpMethod.GET, getHeaders(),DataCollection.class);
+		}catch (Exception ex)
+		{
+			System.out.println(ex);
+		}
+		System.out.println(response.getBody());
+		return response;
+	}
+	
+	
+	@RequestMapping(value = "/register/findall", method = RequestMethod.GET)
+	public List<CaseRegister> findall() {
+	
+		List<CaseRegister> cases = repository.findAll();
+		return cases;
+	}
+		
+	@RequestMapping(value = "/register/{id}", method = RequestMethod.GET)
+	public CaseRegister findById(@PathVariable("id") String id) {
+	
+		CaseRegister cases = repository.findById(id);
+		return cases;
+	}	
+	
+
+
+}

@@ -1,0 +1,11 @@
+server:
+  port: 8094
+spring:
+  application:
+    name: datacollect-service
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8090/eureka 
+  instance:
+    instance-id: ${spring.application.name}

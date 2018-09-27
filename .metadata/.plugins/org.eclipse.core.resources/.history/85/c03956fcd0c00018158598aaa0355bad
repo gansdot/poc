@@ -1,0 +1,39 @@
+package com.poc.model;
+
+public class DataCollection {
+	
+	private Integer caseId;
+	private String caseOwner;
+	private String effectiveDate;
+	private String sfCaseId;
+	private String caseNumber;
+	private String debitAccount;
+	private String debitDescription;
+	private Double debitAmount;
+	private String creditAccount;
+	private String beneficiaryName;
+	private String swiftBic;
+    private String caseDatetime;
+	
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	private Integer id;
+	private String status;
+	private String name;
+}
