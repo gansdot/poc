@@ -48,7 +48,7 @@ public class CreditJdbcRepository {
 
 	public int insert(Credit credit) {
 		return jdbcTemplate.update("insert into POC.CREDIT (SF_CASE_ID, CREDIT_ACCOUNT, CREDIT_AMOUNT, BENEFICIARY_NAME, SWIFT_BIC, CREDIT_DATETIME) " + "values(?,?,?,?,?,?)",
-				new Object[] { credit.getSfCaseId(), credit.getCreditAccount(), credit.getCreditAmount(), credit.getBeneficiaryName(), credit.getSwiftBic(),credit.getCreditDatetime() });
+				new Object[] { credit.getSfCaseId(), credit.getCreditAccount(), credit.getCreditAccount(), credit.getBeneficiaryName(), credit.getSwiftBic(),credit.getCreditDatetime() });
 	}
 
 	
