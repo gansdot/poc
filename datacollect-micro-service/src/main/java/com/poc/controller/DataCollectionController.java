@@ -6,10 +6,10 @@ import java.util.UUID;
 import org.apache.commons.lang.math.RandomUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.poc.jdbc.DataCollectionJdbcRepository;
@@ -23,7 +23,7 @@ public class DataCollectionController {
 	DataCollectionJdbcRepository repository;
 	
 	@RequestMapping(value = "/collect/{caseId}", method = RequestMethod.GET)
-	public DataCollection collect(@RequestParam(required = false, value = "caseId") String caseId) {
+	public DataCollection collect(@PathVariable("caseId") String caseId) {
 		return repository.findById(caseId);
 	}
 	
@@ -57,4 +57,5 @@ public class DataCollectionController {
 		return repository.findAll();
 	}
 
+	
 }

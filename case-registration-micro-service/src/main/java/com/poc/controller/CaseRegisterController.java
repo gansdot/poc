@@ -57,34 +57,57 @@ public class CaseRegisterController {
 		if (sfdata.getBody().equals("success")) {
 			// after getting data call debit service
 			// just audit the data before proceed with debit service
-			audit = buildAudit(uniqueID, "credit-service", "New", "caseId: " + uniqueID);
+			audit = buildAudit(uniqueID, "debit-service", "New", "caseId: " + uniqueID);
 			clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
-			// now call debit service
-			clients.invokeService("/debit/create", "audit-service", String.class, audit, HttpMethod.POST);
-			// get debit data from data collection repo
-			ResponseEntity<DataCollection> casedata = clients.invokeService("/collect/" + uniqueID,
-					"datacollect-service", DataCollection.class, null, HttpMethod.GET);
-			// do the debit for the case
-			ResponseEntity<String> debit = clients.invokeService("/debit/new", "debit-service", String.class,
-					buildDebitData(uniqueID, casedata), HttpMethod.GET);
 
-			if (debit.getBody().equals("success")) {
+			
+			// get the case data
+			ResponseEntity<DataCollection> casedata  = clients.invokeService("/collect/"+uniqueID, "datacollect-service", DataCollection.class, null, HttpMethod.GET);
+			// now build debit data and call debit service to debit the amount from the account
+			Debit debitdata = buildDebitData(uniqueID, casedata);
+			ResponseEntity<String> debitresponse = clients.invokeService("/debit/ac", "debit-service", String.class, debitdata, HttpMethod.POST);
+			
+
+			if (debitresponse.getBody().equals("success")) {
+				
+				// log audit for credit service
+				audit = buildAudit(uniqueID, "credit-service", "New", "caseId: " + uniqueID);
+				clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+
+				// build credit data using case data 
+				Credit creditdata = buildCreditData(uniqueID, casedata);
+
 				// start the credit process
-				ResponseEntity<String> credit = clients.invokeService("/credit/new", "credit-service", String.class,
-						buildCreditData(uniqueID, casedata), HttpMethod.GET);
+				ResponseEntity<String> creditresponse = clients.invokeService("/credit/ac", "credit-service", String.class,
+						creditdata, HttpMethod.GET);
 
-				if (credit.getBody().equals("success")) {
+				if (creditresponse.getBody().equals("success")) {
+					
+					audit = buildAudit(uniqueID, "credit-service", "success", "caseId: " + uniqueID);
+					clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+
+					
 					// close the case with salesforce
-				} else {
+				} else { // credit failure
 					// inform the salesforce
+					audit = buildAudit(uniqueID, "credit-service", "failed", "caseId: " + uniqueID);
+					clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+
 				}
 
-			} else {
-				// stopp the process and inform salesforce
+			} else { // debit failure
+				
+				// stop the process and inform salesforce
+				audit = buildAudit(uniqueID, "debit-service", "failed", "caseId: " + uniqueID);
+				clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+
 			}
 
 		} else {
 			// inform sales force that salesforce data retrive failure
+			audit = buildAudit(uniqueID, "datacollect-service", "failed", "caseId: " + uniqueID);
+			clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+
 		}
 
 		return register;
@@ -122,39 +145,6 @@ public class CaseRegisterController {
 		audit.setTnxStatus(status);
 		return audit;
 	}
-
-	/*
-	 * @Autowired private DiscoveryClient discoveryClient;
-	 * 
-	 * public <T> ResponseEntity<T> invokeService(String restMap, String
-	 * serviceName, Class<T> genericClass, HttpMethod httpMethod) {
-	 * List<ServiceInstance> instances =
-	 * discoveryClient.getInstances(serviceName); ServiceInstance
-	 * serviceInstance=instances.get(0);
-	 * 
-	 * String baseUrl=serviceInstance.getUri().toString();
-	 * 
-	 * baseUrl=baseUrl+restMap;
-	 * 
-	 * RestTemplate restTemplate = new RestTemplate(); ResponseEntity<T>
-	 * response=null; try{ switch (httpMethod) { case GET: response =
-	 * (ResponseEntity<T>) restTemplate.exchange(baseUrl, HttpMethod.GET,
-	 * getHeaders(), genericClass); case POST: response = (ResponseEntity<T>)
-	 * restTemplate.exchange(baseUrl, HttpMethod.POST, getHeaders(),
-	 * genericClass); case PUT: response = (ResponseEntity<T>)
-	 * restTemplate.exchange(baseUrl, HttpMethod.PUT, getHeaders(),
-	 * genericClass); case DELETE: response = (ResponseEntity<T>)
-	 * restTemplate.exchange(baseUrl, HttpMethod.DELETE, getHeaders(),
-	 * genericClass); default: response = (ResponseEntity<T>)
-	 * restTemplate.exchange(baseUrl, HttpMethod.PATCH, getHeaders(),
-	 * genericClass); } } catch (Exception ex) { System.out.println(ex); }
-	 * return response; }
-	 * 
-	 * private static HttpEntity<?> getHeaders() throws IOException {
-	 * HttpHeaders headers = new HttpHeaders(); headers.set("Accept",
-	 * MediaType.APPLICATION_JSON_VALUE); return new
-	 * HttpEntity<Object>(headers); }
-	 */
 
 	@RequestMapping(value = "/register/findall", method = RequestMethod.GET)
 	public List<CaseRegister> findall() {

@@ -3,6 +3,7 @@ package com.poc.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,7 +20,7 @@ public class DebitController {
 	@Autowired
 	DebitJdbcRepository repository; 
 	
-	@RequestMapping(value = "/debit", method = RequestMethod.GET)
+	@RequestMapping(value = "/debit/ac", method = RequestMethod.POST)
 	public String debitac(@RequestBody() Debit debit) {
 		int result = repository.insert(debit);
 		if (result == 1) {
@@ -32,10 +33,11 @@ public class DebitController {
 		}
 		
 	}
-	@RequestMapping(value = "/debit", method = RequestMethod.GET)
-	public Debit getDebit() {
-		Debit credit = new Debit();
+	
+	@RequestMapping(value = "/debit/{caseId}", method = RequestMethod.GET)
+	public Debit getdebit(@PathVariable("caseId") String caseId) {
 		
-		return credit;
+		return repository.findById(caseId);
+		
 	}
 }

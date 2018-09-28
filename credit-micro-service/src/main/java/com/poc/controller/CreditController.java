@@ -20,7 +20,7 @@ public class CreditController {
 	@Autowired
 	CreditJdbcRepository creditJdbcRepository;
 	
-	@RequestMapping(value="/credit/accredit", method=RequestMethod.POST)
+	@RequestMapping(value="/credit/ac", method=RequestMethod.POST)
 	public String credit(@RequestBody() Credit credit) {
 		int result = creditJdbcRepository.insert(credit);
 		
@@ -33,6 +33,5 @@ public class CreditController {
 			return "failed";
 		}
 	}
-	
 	
 }

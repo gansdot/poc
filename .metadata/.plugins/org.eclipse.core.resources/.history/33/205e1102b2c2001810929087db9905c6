@@ -1,0 +1,60 @@
+package com.poc.controller;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.lang.math.RandomUtils;
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.poc.jdbc.DataCollectionJdbcRepository;
+import com.poc.model.Audit;
+import com.poc.model.DataCollection;
+
+@RestController
+public class DataCollectionController {
+	
+	@Autowired
+	DataCollectionJdbcRepository repository;
+	
+	@RequestMapping(value = "/collect/{caseId}", method = RequestMethod.GET)
+	public DataCollection collect(@RequestParam(required = false, value = "caseId") String caseId) {
+		return repository.findById(caseId);
+	}
+	
+	/**
+	 * This REST API is responsible for creating a new case by invoking Salesforce SOAP service 
+	 * @return
+	 */
+	
+	@RequestMapping(value = "/collect/new", method = RequestMethod.POST)
+	public String getCaseFromSalesforce(@RequestBody(required=true) Audit audit) {
+		DataCollection dataCollect = new DataCollection();
+		String uniqueID = UUID.randomUUID().toString();
+		dataCollect.setSfCaseId(uniqueID);
+		dataCollect.setCaseNumber(new Integer(RandomUtils.nextInt()).toString());
+		dataCollect.setCaseOwner("Ganesan Mariappan");
+		dataCollect.setCaseDatetime(DateTime.now().toString());
+		dataCollect.setEffectiveDate(DateTime.now().toString());
+		dataCollect.setBeneficiaryName("Arun R Kumar");
+		dataCollect.setDebitAccount("123456");
+		dataCollect.setCreditAccount("654321");
+		dataCollect.setDebitAmount(105.50);
+		dataCollect.setDebitDescription("Party Expenses");
+		dataCollect.setSwiftBic("HDFC09012");
+		int result = repository.insert(dataCollect);
+		if(result == 1) return "success";
+		else return "failed";
+	}
+	
+	@RequestMapping(value = "/collect/getall", method = RequestMethod.GET)
+	public List<DataCollection> getAll() {
+		return repository.findAll();
+	}
+
+}
