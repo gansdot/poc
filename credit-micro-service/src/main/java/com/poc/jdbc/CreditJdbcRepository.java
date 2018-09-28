@@ -24,6 +24,7 @@ public class CreditJdbcRepository {
 			Credit credit = new Credit();
 			credit.setSfCaseId(rs.getString("SF_CASE_ID"));
 			credit.setCreditAccount(rs.getString("CREDIT_ACCOUNT"));
+			credit.setCreditAmount(rs.getDouble("CREDIT_AMOUNT"));
 			credit.setBeneficiaryName(rs.getString("BENEFICIARY_NAME"));
 			credit.setSfCaseNumber(rs.getString("SF_CASE_NUMBER"));
 			credit.setCreditDatetime(rs.getString("CREDIT_DATETIME"));
@@ -37,12 +38,12 @@ public class CreditJdbcRepository {
 	}
 
 	public Credit findById(String id) {
-		return jdbcTemplate.queryForObject("select * from POC.CREDIT where id=?", new Object[] { id },
+		return jdbcTemplate.queryForObject("select * from POC.CREDIT where SF_CASE_ID = ?", new Object[] { id },
 				new BeanPropertyRowMapper<Credit>(Credit.class));
 	}
 
 	public int deleteById(String id) {
-		return jdbcTemplate.update("delete from POC.CREDIT where id=?", new Object[] { id });
+		return jdbcTemplate.update("delete from POC.CREDIT where SF_CASE_ID = ?", new Object[] { id });
 	}
 
 	public int insert(Credit credit) {

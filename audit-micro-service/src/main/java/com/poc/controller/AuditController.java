@@ -23,7 +23,7 @@ public class AuditController {
 	AuditJdbcRepository repository;
 	
 	@RequestMapping(value = "/audit/create", method = RequestMethod.POST)
-	public String create(@RequestBody(required = true) Audit audit) {
+	public String create(@RequestBody(required = false) Audit audit) {
 		audit.setReqDatetime(DateTime.now().toString());
 		int result = repository.insert(audit);
 		if(result == 1)

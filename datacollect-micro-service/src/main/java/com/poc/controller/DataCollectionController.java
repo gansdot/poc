@@ -1,7 +1,6 @@
 package com.poc.controller;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.commons.lang.math.RandomUtils;
 import org.joda.time.DateTime;
@@ -24,7 +23,8 @@ public class DataCollectionController {
 	
 	@RequestMapping(value = "/collect/{caseId}", method = RequestMethod.GET)
 	public DataCollection collect(@PathVariable("caseId") String caseId) {
-		return repository.findById(caseId);
+		DataCollection col = repository.findById(caseId);
+		return col;
 	}
 	
 	/**
@@ -35,8 +35,8 @@ public class DataCollectionController {
 	@RequestMapping(value = "/collect/new", method = RequestMethod.POST)
 	public String getCaseFromSalesforce(@RequestBody(required=true) Audit audit) {
 		DataCollection dataCollect = new DataCollection();
-		String uniqueID = UUID.randomUUID().toString();
-		dataCollect.setSfCaseId(uniqueID);
+		//String uniqueID = UUID.randomUUID().toString();
+		dataCollect.setSfCaseId(audit.getSfCaseId());
 		dataCollect.setCaseNumber(new Integer(RandomUtils.nextInt()).toString());
 		dataCollect.setCaseOwner("Ganesan Mariappan");
 		dataCollect.setCaseDatetime(DateTime.now().toString());

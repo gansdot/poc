@@ -23,7 +23,7 @@ public class DataCollectionJdbcRepository {
 		public DataCollection mapRow(ResultSet rs, int rowNum) throws SQLException {
 			DataCollection dataCollect = new DataCollection();
 			dataCollect.setCaseId(rs.getInt("CASE_ID"));
-			dataCollect.setCaseNumber(rs.getString("CASE_NUMBER"));
+			dataCollect.setCaseNumber(rs.getString("SF_CASE_NUMBER"));
 			dataCollect.setCaseOwner(rs.getString("CASE_OWNER"));
 			dataCollect.setDebitAccount(rs.getString("DEBIT_ACCOUNT"));
 			dataCollect.setDebitAmount(rs.getDouble("DEBIT_AMOUNT"));
@@ -44,16 +44,16 @@ public class DataCollectionJdbcRepository {
 	}
 
 	public DataCollection findById(String caseId) {
-		return jdbcTemplate.queryForObject("select * from POC.DATA_COLLECTION where caseId=?", new Object[] { caseId },
+		return jdbcTemplate.queryForObject("select * from POC.DATA_COLLECTION where SF_CASE_ID=?", new Object[] { caseId },
 				new BeanPropertyRowMapper<DataCollection>(DataCollection.class));
 	}
 
 	public int deleteById(String id) {
-		return jdbcTemplate.update("delete from POC.DATA_COLLECTION where id=?", new Object[] { id });
+		return jdbcTemplate.update("delete from POC.DATA_COLLECTION where SF_CASE_ID=?", new Object[] { id });
 	}
 
 	public int insert(DataCollection dataCollect) {
-		return jdbcTemplate.update("insert into POC.DATA_COLLECTION (SF_CASE_ID, CASE_NUMBER, CASE_OWNER, "
+		return jdbcTemplate.update("insert into POC.DATA_COLLECTION (SF_CASE_ID, SF_CASE_NUMBER, CASE_OWNER, "
 				+ "DEBIT_ACCOUNT, DEBIT_AMOUNT, DEBIT_DESCRIPTION,"
 				+ "CREDIT_ACCOUNT,BENEFICIARY_NAME, CASE_DATETIME, EFFECTIVE_DATE, SWIFT_BIC) " 
 				+ "values(?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, ?)",

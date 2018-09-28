@@ -1,8 +1,8 @@
 package com.poc.controller;
 
 import java.util.List;
-import java.util.UUID;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +37,9 @@ public class CaseRegisterController {
 	public CaseRegister register() {
 
 		CaseRegister register = new CaseRegister();
-		String uniqueID = UUID.randomUUID().toString();
-		register.setCaseId(uniqueID);
+		String uniqueID = new Integer(RandomUtils.nextInt()).toString();
+		register.setCaseId(new Integer(RandomUtils.nextInt()).toString());
+		
 		log.debug("unique case id ***************** {} ", uniqueID);
 		register.setName("case-register");
 		register.setStatus("success");
@@ -79,7 +80,7 @@ public class CaseRegisterController {
 
 				// start the credit process
 				ResponseEntity<String> creditresponse = clients.invokeService("/credit/ac", "credit-service", String.class,
-						creditdata, HttpMethod.GET);
+						creditdata, HttpMethod.POST);
 
 				if (creditresponse.getBody().equals("success")) {
 					
@@ -130,6 +131,7 @@ public class CaseRegisterController {
 		credit.setSfCaseId(uniqueID);
 		credit.setSfCaseNumber(casedata.getBody().getCaseNumber());
 		credit.setCreditAccount(casedata.getBody().getCreditAccount());
+		credit.setCreditAmount(casedata.getBody().getDebitAmount());
 		credit.setBeneficiaryName(casedata.getBody().getBeneficiaryName());
 		credit.setSwiftBic(casedata.getBody().getSwiftBic());
 		credit.setCreditDatetime(DateTime.now().toString());

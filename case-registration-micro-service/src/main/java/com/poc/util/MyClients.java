@@ -38,7 +38,7 @@ public class MyClients {
 							genericClass);
 					break;
 				case POST:
-					response = (ResponseEntity<T>) restTemplate.exchange(baseUrl, HttpMethod.POST, getHeaders(obj),
+ 					response = (ResponseEntity<T>) restTemplate.exchange(baseUrl, HttpMethod.POST, getHeaders(obj),
 							genericClass);
 					break;
 				case PUT:
