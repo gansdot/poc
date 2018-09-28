@@ -86,6 +86,7 @@ public class CaseRegisterController {
 					
 					audit = buildAudit(uniqueID, "credit-service", "success", "caseId: " + uniqueID);
 					clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+
 					
 					// close the case with salesforce
 				} else { // credit failure
@@ -159,12 +160,6 @@ public class CaseRegisterController {
 
 		CaseRegister cases = repository.findById(id);
 		return cases;
-	}
-
-	
-	@RequestMapping(value = "/info", method = RequestMethod.GET)
-	public String info() {
-		return "Case Register microservice is the starting point of the 'Fund Transfer' process and it also does the orchestration";
 	}
 
 }

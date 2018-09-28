@@ -34,10 +34,4 @@ public class CreditController {
 		}
 	}
 	
-	@RequestMapping(value = "/info", method = RequestMethod.GET)
-	public String info() {
-		return "Credit microservice responsible for crediting the Amount to beneficiary account. This service will depends on the Debit service. After debit the amount from source account, only the credit service will do its job.";
-	}
-
-	
 }

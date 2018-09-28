@@ -161,10 +161,4 @@ public class CaseRegisterController {
 		return cases;
 	}
 
-	
-	@RequestMapping(value = "/info", method = RequestMethod.GET)
-	public String info() {
-		return "Case Register microservice is the starting point of the 'Fund Transfer' process and it also does the orchestration";
-	}
-
 }

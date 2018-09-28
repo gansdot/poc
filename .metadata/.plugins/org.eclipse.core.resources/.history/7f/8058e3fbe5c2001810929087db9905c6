@@ -39,11 +39,6 @@ public class AuditController {
 		return "success";
 		else return "failed";
 	}
-	
-	@RequestMapping(value = "/info", method = RequestMethod.GET)
-	public String info() {
-		return "Auditing microservice is for auditing information regarding the execution of the services. To track the process flow auditing will help.";
-	}
 
 	
 }

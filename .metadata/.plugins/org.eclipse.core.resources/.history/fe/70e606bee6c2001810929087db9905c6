@@ -36,12 +36,8 @@ public class DebitController {
 	
 	@RequestMapping(value = "/debit/{caseId}", method = RequestMethod.GET)
 	public Debit getdebit(@PathVariable("caseId") String caseId) {
+		
 		return repository.findById(caseId);
+		
 	}
-	
-	@RequestMapping(value = "/info", method = RequestMethod.GET)
-	public String info() {
-		return "Debit microservice responsible for debiting the Amount from the given account. It will internally talk to banking system and does the debiting.";
-	}
-	
 }
