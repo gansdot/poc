@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <aop-reference-model>
-<aop-project name="credit-service"/>
-<aop-project name="case-registration"/>
+<aop-project name="case-registration-micro-service"/>
 <aop-project name="eureka-server"/>
-<aop-project name="debit-service"/>
-<aop-project name="consumer-service"/>
-<aop-project name="datacollect-service"/>
+<aop-project name="audit-micro-service"/>
+<aop-project name="credit-micro-service"/>
+<aop-project name="datacollect-micro-service"/>
+<aop-project name="debit-micro-service"/>
 </aop-reference-model>

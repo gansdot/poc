@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: zuul-service
+server:
+  port: 8080
+  
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8090/eureka/
+
+zuul:
+  #Service will be mapped under the /api URI
+  prefix: /api
+  routes:
+    audit-service:
+      path: /audit/**
+      url: AUDIT-SERVICE
+    datacollect-service:
+      path: /data/**
+      url: DATACOLLECT-SERVICE
+    debit-service:
+      path: /debit/**
+      url: DEBIT-SERVICE
+    credit-service:
+      path: /credit/**
+      url: CREDIT-SERVICE
