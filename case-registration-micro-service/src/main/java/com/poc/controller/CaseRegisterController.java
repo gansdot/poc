@@ -33,84 +33,94 @@ public class CaseRegisterController {
 	@Autowired
 	CaseRegisterJdbcRepository repository;
 
+	
 	@RequestMapping(value = "/register/new", method = RequestMethod.GET)
-	public CaseRegister register() {
+	public String register() throws Exception {
 
-		CaseRegister register = new CaseRegister();
-		String uniqueID = new Integer(RandomUtils.nextInt()).toString();
-		register.setCaseId(new Integer(RandomUtils.nextInt()).toString());
-		
-		log.debug("unique case id ***************** {} ", uniqueID);
-		register.setName("case-register");
-		register.setStatus("success");
-		repository.insert(register);
-		
-		
-		Audit audit = buildAudit(uniqueID, "datacollect-service", "New", "caseId: " + uniqueID);
-		clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+		try {
 
-		ResponseEntity<String> sfdata = clients.invokeService("/collect/new", "datacollect-service", String.class,
-				audit, HttpMethod.POST);
+			// register microservice will be called after successful approval of
+			// the request.
 
-		audit = buildAudit(uniqueID, "datacollect-service", "Submitted", "caseId: " + uniqueID);
-		clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
+			String uniqueID = new Integer(RandomUtils.nextInt()).toString();
 
-		if (sfdata.getBody().equals("success")) {
-			// after getting data call debit service
-			// just audit the data before proceed with debit service
-			audit = buildAudit(uniqueID, "debit-service", "New", "caseId: " + uniqueID);
+			log.debug("unique case id ***************** {} ", uniqueID);
+
+			/*** call data collection service here along with audit the case */
+
+			Audit audit = buildAudit(uniqueID, "datacollect-service", "New", "caseId: " + uniqueID);
 			clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
-			
-			// get the case data
-			ResponseEntity<DataCollection> casedata  = clients.invokeService("/collect/"+uniqueID, "datacollect-service", DataCollection.class, null, HttpMethod.GET);
-			// now build debit data and call debit service to debit the amount from the account
-			Debit debitdata = buildDebitData(uniqueID, casedata);
-			ResponseEntity<String> debitresponse = clients.invokeService("/debit/ac", "debit-service", String.class, debitdata, HttpMethod.POST);
-			
+			ResponseEntity<String> sfdata = clients.invokeService("/collect/new", "datacollect-service", String.class,
+					audit, HttpMethod.POST);
 
-			if (debitresponse.getBody().equals("success")) {
-				
-				// log audit for credit service
-				audit = buildAudit(uniqueID, "credit-service", "New", "caseId: " + uniqueID);
+			audit = buildAudit(uniqueID, "datacollect-service", "Success", "caseId: " + uniqueID);
+			clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
+
+			/** end of case data collection service */
+
+			/** check the data collect service status for success */
+
+			if (sfdata.getBody().equals("success")) {
+				// after getting case data, call the debit service
+				// just audit the data before proceed with debit service
+				audit = buildAudit(uniqueID, "debit-service", "New", "caseId: " + uniqueID);
 				clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
-				// build credit data using case data 
-				Credit creditdata = buildCreditData(uniqueID, casedata);
+				// get the case data
+				ResponseEntity<DataCollection> casedata = clients.invokeService("/collect/" + uniqueID,
+						"datacollect-service", DataCollection.class, null, HttpMethod.GET);
+				// now build debit data and call debit service to debit the
+				// amount from the account
+				Debit debitdata = buildDebitData(uniqueID, casedata);
+				ResponseEntity<String> debitresponse = clients.invokeService("/debit/ac", "debit-service", String.class,
+						debitdata, HttpMethod.POST);
 
-				// start the credit process
-				ResponseEntity<String> creditresponse = clients.invokeService("/credit/ac", "credit-service", String.class,
-						creditdata, HttpMethod.POST);
+				if (debitresponse.getBody().equals("success")) {
 
-				if (creditresponse.getBody().equals("success")) {
-					
-					audit = buildAudit(uniqueID, "credit-service", "success", "caseId: " + uniqueID);
+					// log audit for credit service
+					audit = buildAudit(uniqueID, "credit-service", "New", "caseId: " + uniqueID);
 					clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
-					
-					// close the case with salesforce
-				} else { // credit failure
-					// inform the salesforce
-					audit = buildAudit(uniqueID, "credit-service", "failed", "caseId: " + uniqueID);
+
+					// build credit data using case data
+					Credit creditdata = buildCreditData(uniqueID, casedata);
+
+					// start the credit process
+					ResponseEntity<String> creditresponse = clients.invokeService("/credit/ac", "credit-service",
+							String.class, creditdata, HttpMethod.POST);
+
+					if (creditresponse.getBody().equals("success")) {
+
+						audit = buildAudit(uniqueID, "credit-service", "success", "caseId: " + uniqueID);
+						clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+
+						// close the case with salesforce
+					} else { // credit failure
+						// inform the salesforce
+						audit = buildAudit(uniqueID, "credit-service", "failed", "caseId: " + uniqueID);
+						clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+
+					}
+
+				} else { // debit failure
+
+					// stop the process and inform salesforce
+					audit = buildAudit(uniqueID, "debit-service", "failed", "caseId: " + uniqueID);
 					clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
 				}
 
-			} else { // debit failure
-				
-				// stop the process and inform salesforce
-				audit = buildAudit(uniqueID, "debit-service", "failed", "caseId: " + uniqueID);
+			} else {
+				// inform sales force that salesforce data retrive failure
+				audit = buildAudit(uniqueID, "datacollect-service", "failed", "caseId: " + uniqueID);
 				clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
 			}
-
-		} else {
-			// inform sales force that salesforce data retrive failure
-			audit = buildAudit(uniqueID, "datacollect-service", "failed", "caseId: " + uniqueID);
-			clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
-
+			return "case register success";
+		} catch (Exception e) {
+			throw new Exception("there is some error during the fund transfer process.");
 		}
 
-		return register;
 	}
 
 	private Debit buildDebitData(String uniqueID, ResponseEntity<DataCollection> debitdata) {
