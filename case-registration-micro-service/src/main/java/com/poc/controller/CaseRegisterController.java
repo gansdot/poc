@@ -93,7 +93,6 @@ public class CaseRegisterController {
 
 						audit = buildAudit(uniqueID, "credit-service", "success", "caseId: " + uniqueID);
 						clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
-
 						// close the case with salesforce
 					} else { // credit failure
 						// inform the salesforce
@@ -118,7 +117,7 @@ public class CaseRegisterController {
 			}
 			return "case register success";
 		} catch (Exception e) {
-			throw new Exception("there is some error during the fund transfer process.");
+			throw new Exception("there is some issue during the fund transfer process. please check the sales force portal for more details.");
 		}
 
 	}
