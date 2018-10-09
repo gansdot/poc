@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.poc.jdbc.DataCollectionJdbcRepository;
 import com.poc.model.Audit;
 import com.poc.model.DataCollection;
@@ -33,6 +34,7 @@ public class DataCollectionController {
 	 */
 	
 	@RequestMapping(value = "/collect/new", method = RequestMethod.POST)
+	@HystrixCommand(fallbackMethod = "getDataFallBack")
 	public String getCaseFromSalesforce(@RequestBody(required=true) Audit audit) {
 		DataCollection dataCollect = new DataCollection();
 		//String uniqueID = UUID.randomUUID().toString();
@@ -50,6 +52,15 @@ public class DataCollectionController {
 		int result = repository.insert(dataCollect);
 		if(result == 1) return "success";
 		else return "failed";
+	}
+	
+	public DataCollection getDataFallBack() {
+		
+		DataCollection data = new DataCollection();
+		data.setSfCaseId("fallback-1");
+		data.setCaseOwner("fallback-owner");
+		return data;
+		
 	}
 	
 	@RequestMapping(value = "/collect/getall", method = RequestMethod.GET)

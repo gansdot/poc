@@ -1,10 +1,9 @@
 package com.poc.util;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,15 +14,25 @@ import org.springframework.web.client.RestTemplate;
 public class MyClients {
 
 
-	public MyClients(DiscoveryClient discoveryClient) {
+/*	public MyClients(DiscoveryClient discoveryClient) {
 		this.discoveryClient = discoveryClient;
+	}*/
+	
+	public MyClients(LoadBalancerClient loadBalancer) {
+		this.loadBalancer = loadBalancer;
 	}
 	
-	private DiscoveryClient discoveryClient;
+	private LoadBalancerClient loadBalancer;
+	
+	//private DiscoveryClient discoveryClient;
 
 	public <T> ResponseEntity<T> invokeService(String restMap, String serviceName, Class<T> genericClass, Object obj, HttpMethod httpMethod) {
-		List<ServiceInstance> instances = discoveryClient.getInstances(serviceName);
-		ServiceInstance serviceInstance=instances.get(0);
+		
+		//List<ServiceInstance> instances = discoveryClient.getInstances(serviceName);
+		
+		//ServiceInstance serviceInstance=instances.get(0);
+		
+		ServiceInstance serviceInstance = loadBalancer.choose(serviceName);
 		
 		String baseUrl=serviceInstance.getUri().toString();
 		

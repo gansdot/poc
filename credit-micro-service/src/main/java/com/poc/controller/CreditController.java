@@ -4,15 +4,18 @@ package com.poc.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.poc.config.CreditConfiguration;
 import com.poc.jdbc.CreditJdbcRepository;
 import com.poc.model.Credit;
 
 @RestController
+@RibbonClient(name="credit-service", configuration=CreditConfiguration.class)
 public class CreditController {
 
 	private Logger log = LoggerFactory.getLogger(CreditController.class);

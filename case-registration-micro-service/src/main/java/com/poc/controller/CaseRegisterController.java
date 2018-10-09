@@ -54,17 +54,19 @@ public class CaseRegisterController {
 			ResponseEntity<String> sfdata = clients.invokeService("/collect/new", "datacollect-service", String.class,
 					audit, HttpMethod.POST);
 
-			audit = buildAudit(uniqueID, "datacollect-service", "Success", "caseId: " + uniqueID);
-			clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
-
 			/** end of case data collection service */
 
 			/** check the data collect service status for success */
 
 			if (sfdata.getBody().equals("success")) {
+
+				audit = buildAudit(uniqueID, "datacollect-service", "Success", "caseId: " + uniqueID);
+				clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
+
+
 				// after getting case data, call the debit service
 				// just audit the data before proceed with debit service
-				audit = buildAudit(uniqueID, "debit-service", "New", "caseId: " + uniqueID);
+				audit = buildAudit(uniqueID, "debit-service", "new", "caseId: " + uniqueID);
 				clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
 				// get the case data
@@ -77,27 +79,32 @@ public class CaseRegisterController {
 						debitdata, HttpMethod.POST);
 
 				if (debitresponse.getBody().equals("success")) {
+					
+					// log the audit of debit service success
+					audit = buildAudit(uniqueID, "debit-service", "success", "caseId: " + uniqueID);
+					clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 
-					// log audit for credit service
-					audit = buildAudit(uniqueID, "credit-service", "New", "caseId: " + uniqueID);
+					// log audit for credit service with "New" status 
+					audit = buildAudit(uniqueID, "credit-service", "new", "caseId: " + uniqueID);
 					clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
-					// build credit data using case data
+					// prepare credit data using case data for credit service invocation
 					Credit creditdata = buildCreditData(uniqueID, casedata);
-
-					// start the credit process
+					// start the credit process on beneficiary account
 					ResponseEntity<String> creditresponse = clients.invokeService("/credit/ac", "credit-service",
 							String.class, creditdata, HttpMethod.POST);
 
 					if (creditresponse.getBody().equals("success")) {
 
 						audit = buildAudit(uniqueID, "credit-service", "success", "caseId: " + uniqueID);
-						clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+						clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 						// close the case with salesforce
+						// call salesforce here 
 					} else { // credit failure
+						
 						// inform the salesforce
 						audit = buildAudit(uniqueID, "credit-service", "failed", "caseId: " + uniqueID);
-						clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+						clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 
 					}
 
@@ -105,14 +112,14 @@ public class CaseRegisterController {
 
 					// stop the process and inform salesforce
 					audit = buildAudit(uniqueID, "debit-service", "failed", "caseId: " + uniqueID);
-					clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+					clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 
 				}
 
 			} else {
 				// inform sales force that salesforce data retrive failure
 				audit = buildAudit(uniqueID, "datacollect-service", "failed", "caseId: " + uniqueID);
-				clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
+				clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 
 			}
 			return "case register success";
@@ -153,6 +160,9 @@ public class CaseRegisterController {
 		audit.setReqDatetime(DateTime.now().toString());
 		audit.setTnxName(serviceName);
 		audit.setTnxStatus(status);
+		if(!status.equalsIgnoreCase("new")){
+			audit.setResData("caseStatus: success");
+		}
 		return audit;
 	}
 

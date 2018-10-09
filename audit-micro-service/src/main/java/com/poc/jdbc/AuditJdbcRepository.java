@@ -22,17 +22,25 @@ public class AuditJdbcRepository {
 		@Override
 		public Audit mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Audit audit = new Audit();
+			audit.setAuditId(rs.getInt("AUDIT_ID"));
+			audit.setSfCaseId(rs.getString("SF_CASE_ID"));
+			audit.setTnxName(rs.getString("TNX_NAME"));
+			audit.setTnxStatus(rs.getString("TNX_STATUS"));
+			audit.setReqData(rs.getString("REQ_DATA"));
+			audit.setReqDatetime(rs.getString("REQ_DATETIME"));
+			audit.setResData(rs.getString("RES_DATA"));
+			audit.setResDatetime(rs.getString("RES_DATETIME"));
 			return audit;
 		}
 
 	}
 
 	public List<Audit> findAll() {
-		return jdbcTemplate.query("select * from POC.DEBIT", new AuditRowMapper());
+		return jdbcTemplate.query("select * from POC.AUDIT", new AuditRowMapper());
 	}
 
-	public Audit findById(String sfCaseId) {
-		return jdbcTemplate.queryForObject("select * from POC.DEBIT where SF_CASE_ID=?", new Object[] { sfCaseId },
+	public List<Audit> findById(String sfCaseId) {
+		return jdbcTemplate.query("select * from POC.AUDIT where SF_CASE_ID=?", new Object[] { sfCaseId },
 				new BeanPropertyRowMapper<Audit>(Audit.class));
 	}
 

@@ -1,7 +1,7 @@
 package com.poc.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,12 +11,12 @@ import com.poc.util.MyClients;
 public class Config {
 
 	@Autowired
-	private DiscoveryClient discoveryClient;
+	private LoadBalancerClient loadBalancer;
 
 	
 	@Bean
 	public MyClients clients() {
-		return new MyClients(discoveryClient);
+		return new MyClients(loadBalancer);
 	}
 	
 }
