@@ -74,6 +74,12 @@ public class DataCollection {
 	public void setCaseDatetime(String caseDatetime) {
 		this.caseDatetime = caseDatetime;
 	}
+	public String getCaseStatus() {
+		return caseStatus;
+	}
+	public void setCaseStatus(String caseStatus) {
+		this.caseStatus = caseStatus;
+	}
 	
 	private Integer caseId;
 	private String caseOwner;
@@ -87,6 +93,7 @@ public class DataCollection {
 	private String beneficiaryName;
 	private String swiftBic;
     private String caseDatetime;
+    private String caseStatus;
 	
 
 }

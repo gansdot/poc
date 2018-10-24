@@ -15,4 +15,18 @@
 <fullyQualifiedTypeName name="org.slf4j.LoggerFactory"/>
 <fullyQualifiedTypeName name="org.slf4j.Logger"/>
 <fullyQualifiedTypeName name="com.poc.controller.DebitController"/>
+<fullyQualifiedTypeName name="com.sforce.soap.enterprise.sobject.Case"/>
+<fullyQualifiedTypeName name="com.sforce.soap.enterprise.sobject.SObject"/>
+<fullyQualifiedTypeName name="com.sforce.async.SObject"/>
+<fullyQualifiedTypeName name="com.poc.sfutil.SalesforceUtils"/>
+<fullyQualifiedTypeName name="org.springframework.stereotype.Service"/>
+<fullyQualifiedTypeName name="org.springframework.stereotype.Component"/>
+<fullyQualifiedTypeName name="com.poc.configuration.ForceQuery"/>
+<fullyQualifiedTypeName name="javax.inject.Inject"/>
+<fullyQualifiedTypeName name="com.sforce.ws.ConnectionException"/>
+<fullyQualifiedTypeName name="com.sforce.soap.enterprise.Connector"/>
+<fullyQualifiedTypeName name="java.sql.DriverManager"/>
+<fullyQualifiedTypeName name="java.sql.Connection"/>
+<fullyQualifiedTypeName name="java.sql.Statement"/>
+<fullyQualifiedTypeName name="org.springframework.context.annotation.Configuration"/>
 </qualifiedTypeNameHistroy>

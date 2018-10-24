@@ -3,7 +3,9 @@
 <aop-project name="case-registration-micro-service"/>
 <aop-project name="eureka-server"/>
 <aop-project name="audit-micro-service"/>
+<aop-project name="zuul-service"/>
 <aop-project name="credit-micro-service"/>
+<aop-project name="salesforce-client"/>
 <aop-project name="datacollect-micro-service"/>
 <aop-project name="debit-micro-service"/>
 </aop-reference-model>

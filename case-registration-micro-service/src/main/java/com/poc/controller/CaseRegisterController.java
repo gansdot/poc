@@ -2,7 +2,6 @@ package com.poc.controller;
 
 import java.util.List;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,29 +33,29 @@ public class CaseRegisterController {
 	CaseRegisterJdbcRepository repository;
 
 	
-	@RequestMapping(value = "/register/new", method = RequestMethod.GET)
-	public String register() throws Exception {
-
+	@RequestMapping(value = "/process/{caseId}", method = RequestMethod.GET)
+	public String register(@PathVariable("caseId") String caseId) throws Exception {
+		log.debug("this is new case id from salesforce {} ", caseId);
 		try {
 
 			// register microservice will be called after successful approval of
 			// the request.
 
-			String uniqueID = new Integer(RandomUtils.nextInt()).toString();
+			String uniqueID = caseId;//new Integer(RandomUtils.nextInt()).toString();
 
-			log.debug("unique case id ***************** {} ", uniqueID);
+			log.debug("unique case id from salesfroce ***************** {} ", uniqueID);
 
-			/*** call data collection service here along with audit the case */
+			// call data collection service here along with audit the case 
 
 			Audit audit = buildAudit(uniqueID, "datacollect-service", "New", "caseId: " + uniqueID);
 			clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
-			ResponseEntity<String> sfdata = clients.invokeService("/collect/new", "datacollect-service", String.class,
-					audit, HttpMethod.POST);
+			ResponseEntity<String> sfdata = clients.invokeService("/collect/"+caseId, "datacollect-service", String.class,
+					caseId, HttpMethod.GET);
 
-			/** end of case data collection service */
+			// end of case data collection service 
 
-			/** check the data collect service status for success */
+			// check the data collect service status for success 
 
 			if (sfdata.getBody().equals("success")) {
 
@@ -70,7 +69,7 @@ public class CaseRegisterController {
 				clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
 				// get the case data
-				ResponseEntity<DataCollection> casedata = clients.invokeService("/collect/" + uniqueID,
+				ResponseEntity<DataCollection> casedata = clients.invokeService("/select/" + uniqueID,
 						"datacollect-service", DataCollection.class, null, HttpMethod.GET);
 				// now build debit data and call debit service to debit the
 				// amount from the account
@@ -127,6 +126,7 @@ public class CaseRegisterController {
 			throw new Exception("there is some issue during the fund transfer process. please check the sales force portal for more details.");
 		}
 
+
 	}
 
 	private Debit buildDebitData(String uniqueID, ResponseEntity<DataCollection> debitdata) {
@@ -160,9 +160,15 @@ public class CaseRegisterController {
 		audit.setReqDatetime(DateTime.now().toString());
 		audit.setTnxName(serviceName);
 		audit.setTnxStatus(status);
-		if(!status.equalsIgnoreCase("new")){
+		
+		if(status.equalsIgnoreCase("success")){
 			audit.setResData("caseStatus: success");
-		}
+		} else if(status.equalsIgnoreCase("failed")){
+			audit.setResData("caseStatus: failed");
+		} else {
+			audit.setResData("caseStatus: started");
+		} 
+		
 		return audit;
 	}
 
