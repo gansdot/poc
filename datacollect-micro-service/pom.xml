@@ -28,6 +28,7 @@
 		<dependency>
 			<groupId>com.poc.soap.client</groupId>
 			<artifactId>salesforce-client</artifactId>
+			<scope>compile</scope>
 			<version>0.0.1</version>
 		</dependency>
 		

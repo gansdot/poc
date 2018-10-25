@@ -17,8 +17,8 @@ import com.poc.jdbc.CaseRegisterJdbcRepository;
 import com.poc.model.Audit;
 import com.poc.model.CaseRegister;
 import com.poc.model.Credit;
-import com.poc.model.DataCollection;
 import com.poc.model.Debit;
+import com.poc.model.ForcecaseData;
 import com.poc.util.MyClients;
 
 @RestController
@@ -32,7 +32,6 @@ public class CaseRegisterController {
 	@Autowired
 	CaseRegisterJdbcRepository repository;
 
-	
 	@RequestMapping(value = "/process/{caseId}", method = RequestMethod.GET)
 	public String register(@PathVariable("caseId") String caseId) throws Exception {
 		log.debug("this is new case id from salesforce {} ", caseId);
@@ -41,27 +40,27 @@ public class CaseRegisterController {
 			// register microservice will be called after successful approval of
 			// the request.
 
-			String uniqueID = caseId;//new Integer(RandomUtils.nextInt()).toString();
+			String uniqueID = caseId;// new
+										// Integer(RandomUtils.nextInt()).toString();
 
 			log.debug("unique case id from salesfroce ***************** {} ", uniqueID);
 
-			// call data collection service here along with audit the case 
+			// call data collection service here along with audit the case
 
-			Audit audit = buildAudit(uniqueID, "datacollect-service", "New", "caseId: " + uniqueID);
+			Audit audit = buildAudit(uniqueID, "forcedata-service", "new", "caseId: " + uniqueID);
 			clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
-			ResponseEntity<String> sfdata = clients.invokeService("/collect/"+caseId, "datacollect-service", String.class,
-					caseId, HttpMethod.GET);
+			ResponseEntity<String> sfdata = clients.invokeService("/collect/" + caseId, "forcedata-service",
+					String.class, caseId, HttpMethod.GET);
 
-			// end of case data collection service 
+			// end of case data collection service
 
-			// check the data collect service status for success 
+			// check the data collect service status for success
 
 			if (sfdata.getBody().equals("success")) {
 
-				audit = buildAudit(uniqueID, "datacollect-service", "Success", "caseId: " + uniqueID);
+				audit = buildAudit(uniqueID, "forcedata-service", "success", "caseId: " + uniqueID);
 				clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
-
 
 				// after getting case data, call the debit service
 				// just audit the data before proceed with debit service
@@ -69,8 +68,8 @@ public class CaseRegisterController {
 				clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
 				// get the case data
-				ResponseEntity<DataCollection> casedata = clients.invokeService("/select/" + uniqueID,
-						"datacollect-service", DataCollection.class, null, HttpMethod.GET);
+				ResponseEntity<ForcecaseData> casedata = clients.invokeService("/select/" + uniqueID,
+						"forcedata-service", ForcecaseData.class, null, HttpMethod.GET);
 				// now build debit data and call debit service to debit the
 				// amount from the account
 				Debit debitdata = buildDebitData(uniqueID, casedata);
@@ -78,16 +77,17 @@ public class CaseRegisterController {
 						debitdata, HttpMethod.POST);
 
 				if (debitresponse.getBody().equals("success")) {
-					
+
 					// log the audit of debit service success
 					audit = buildAudit(uniqueID, "debit-service", "success", "caseId: " + uniqueID);
 					clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 
-					// log audit for credit service with "New" status 
+					// log audit for credit service with "New" status
 					audit = buildAudit(uniqueID, "credit-service", "new", "caseId: " + uniqueID);
 					clients.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
-					// prepare credit data using case data for credit service invocation
+					// prepare credit data using case data for credit service
+					// invocation
 					Credit creditdata = buildCreditData(uniqueID, casedata);
 					// start the credit process on beneficiary account
 					ResponseEntity<String> creditresponse = clients.invokeService("/credit/ac", "credit-service",
@@ -98,13 +98,34 @@ public class CaseRegisterController {
 						audit = buildAudit(uniqueID, "credit-service", "success", "caseId: " + uniqueID);
 						clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 						// close the case with salesforce
-						// call salesforce here 
+						// call salesforce client here
+						ForcecaseData updateCase = buildCaseData(uniqueID, "credit-success");
+						ResponseEntity<String> caseupdate = clients.invokeService("/update/" + uniqueID,
+								"forcedata-service", String.class, updateCase, HttpMethod.PUT);
+						log.debug("credit transaction successfully completed for case : {} ", uniqueID);
+
+						if (caseupdate.equals("success")) {
+							audit = buildAudit(uniqueID, "forcedata-service", "completed", "caseId: " + uniqueID);
+							clients.invokeService("/audit/create", "audit-service", String.class, audit,
+									HttpMethod.POST);
+							log.debug("case successfully completed and udpated in salesforce for case : {} ", uniqueID);
+						} else {
+							audit = buildAudit(uniqueID, "forcedata-service", "failed", "caseId: " + uniqueID);
+							clients.invokeService("/audit/create", "audit-service", String.class, audit,
+									HttpMethod.POST);
+							log.debug("update case failed in salesforce for case : {} ", uniqueID);
+
+						}
+
 					} else { // credit failure
-						
+
 						// inform the salesforce
 						audit = buildAudit(uniqueID, "credit-service", "failed", "caseId: " + uniqueID);
 						clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
-
+						ForcecaseData updateCase = buildCaseData(uniqueID, "credit-failed");
+						clients.invokeService("/update/" + uniqueID,
+								"forcedata-service", String.class, updateCase, HttpMethod.PUT);
+						log.debug("credit transaction failed for case : {} ", uniqueID);
 					}
 
 				} else { // debit failure
@@ -112,24 +133,32 @@ public class CaseRegisterController {
 					// stop the process and inform salesforce
 					audit = buildAudit(uniqueID, "debit-service", "failed", "caseId: " + uniqueID);
 					clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
-
+					ForcecaseData updateCase = buildCaseData(uniqueID, "debit-failed");
+					clients.invokeService("/update/" + uniqueID,
+							"forcedata-service", String.class, updateCase, HttpMethod.PUT);
+					log.debug("debit transaction failed for case : {} ", uniqueID);
 				}
 
 			} else {
 				// inform sales force that salesforce data retrive failure
 				audit = buildAudit(uniqueID, "datacollect-service", "failed", "caseId: " + uniqueID);
 				clients.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
+				ForcecaseData updateCase = buildCaseData(uniqueID, "datacollection-failed");
+				clients.invokeService("/update/" + uniqueID,
+						"forcedata-service", String.class, updateCase, HttpMethod.PUT);
+				log.debug("data collection failed for case : {} ", uniqueID);
+				
 
 			}
 			return "case register success";
 		} catch (Exception e) {
-			throw new Exception("there is some issue during the fund transfer process. please check the sales force portal for more details.");
+			throw new Exception(
+					"there is some issue during the fund transfer process. please check the sales force portal for more details.");
 		}
-
 
 	}
 
-	private Debit buildDebitData(String uniqueID, ResponseEntity<DataCollection> debitdata) {
+	private Debit buildDebitData(String uniqueID, ResponseEntity<ForcecaseData> debitdata) {
 		Debit debit = new Debit();
 		debit.setSfCaseId(uniqueID);
 		debit.setCaseNumber(debitdata.getBody().getCaseNumber());
@@ -141,7 +170,7 @@ public class CaseRegisterController {
 		return debit;
 	}
 
-	private Credit buildCreditData(String uniqueID, ResponseEntity<DataCollection> casedata) {
+	private Credit buildCreditData(String uniqueID, ResponseEntity<ForcecaseData> casedata) {
 		Credit credit = new Credit();
 		credit.setSfCaseId(uniqueID);
 		credit.setSfCaseNumber(casedata.getBody().getCaseNumber());
@@ -153,6 +182,13 @@ public class CaseRegisterController {
 		return credit;
 	}
 
+	private ForcecaseData buildCaseData(String uniqueID,String status) {
+		ForcecaseData casedt = new ForcecaseData();
+		casedt.setSfCaseId(uniqueID);
+		casedt.setCaseStatus(status);
+		return casedt;
+	}
+
 	private Audit buildAudit(String uniqueID, String serviceName, String status, String reqData) {
 		Audit audit = new Audit();
 		audit.setSfCaseId(uniqueID);
@@ -160,15 +196,15 @@ public class CaseRegisterController {
 		audit.setReqDatetime(DateTime.now().toString());
 		audit.setTnxName(serviceName);
 		audit.setTnxStatus(status);
-		
-		if(status.equalsIgnoreCase("success")){
+
+		if (status.equalsIgnoreCase("success")) {
 			audit.setResData("caseStatus: success");
-		} else if(status.equalsIgnoreCase("failed")){
+		} else if (status.equalsIgnoreCase("failed")) {
 			audit.setResData("caseStatus: failed");
 		} else {
 			audit.setResData("caseStatus: started");
-		} 
-		
+		}
+
 		return audit;
 	}
 
@@ -186,7 +222,6 @@ public class CaseRegisterController {
 		return cases;
 	}
 
-	
 	@RequestMapping(value = "/info", method = RequestMethod.GET)
 	public String info() {
 		return "Case Register microservice is the starting point of the 'Fund Transfer' process and it also does the orchestration";
