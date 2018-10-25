@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.poc.configuration.ForceConfiguration;
 import com.poc.jdbc.ForceclientJdbcRepository;
-import com.poc.model.DataCollection;
 import com.poc.model.ForcecaseData;
 import com.sforce.ws.ConnectionException;
 
@@ -49,7 +48,8 @@ public class ForceController {
 	
 	@RequestMapping(value = "/update/{caseId}", method = RequestMethod.PUT,consumes={"application/json","application/xml"})
 	public String collect(@RequestBody(required = false) ForcecaseData casedata) throws ConnectionException {
-		log.debug("Rest call to update status to salesforce case id {} and status {} ", casedata.getCaseId(), casedata.getCaseStatus());
+		log.debug("Rest call to update status to salesforce case id {} and status {} ", casedata.getSfCaseId(), casedata.getCaseStatus());
+		//forceConfiguration.describeSObjectsSample();
 		return forceConfiguration.updateForceQuery(casedata.getSfCaseId(),casedata.getCaseStatus());
 	}
 	

@@ -18,7 +18,7 @@ zuul:
       url: AUDIT-SERVICE
     datacollect-service:
       path: /data/**
-      url: DATACOLLECT-SERVICE
+      url: FORCEDATA-SERVICE
     debit-service:
       path: /debit/**
       url: DEBIT-SERVICE

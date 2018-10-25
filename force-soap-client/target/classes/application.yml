@@ -25,9 +25,11 @@ eureka:
     
 logging:
   level: 
-    com.poc.SpringBootCaseRegistrationApplication: DEBUG
-    com.springframework.web: ERROR
-    com.poc: ALL
+    root: ERROR
+    com.springframework.web: WARN
+    com.poc: DEBUG
   pattern:
     console: "%d %-5level %logger : %msg%n"
+
+    
     
