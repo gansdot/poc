@@ -25,3 +25,6 @@ zuul:
     credit-service:
       path: /credit/**
       url: CREDIT-SERVICE
+    case-process-service:
+      path: /process/**
+      url: CASE-PROCESS-SERVICE

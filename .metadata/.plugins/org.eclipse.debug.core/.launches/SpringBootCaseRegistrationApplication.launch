@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/case-registration-micro-service/src/main/java/com/poc/SpringBootCaseRegistrationApplication.java"/>
+<listEntry value="/case-process-micro-service/src/main/java/com/poc/SpringBootCaseRegistrationApplication.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.m2e.launchconfig.classpathProvider"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.poc.SpringBootCaseRegistrationApplication"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="case-registration-micro-service"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="case-process-micro-service"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
 </launchConfiguration>
