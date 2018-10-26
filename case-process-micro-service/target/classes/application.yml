@@ -24,7 +24,7 @@ spring:
 
 logging:
   level:
-    com.poc.SpringBootCaseRegistrationApplication: DEBUG
+    Application: DEBUG
     com.springframework.web: ERROR
     com.poc: DEBUG
   pattern:
