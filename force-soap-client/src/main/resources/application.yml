@@ -21,8 +21,16 @@ eureka:
       defaultZone: http://localhost:8090/eureka 
   instance:
     instance-id: ${spring.application.name}
-    
-    
+ 
+hystrix:
+  metrics:
+    enabled: true
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 12000    
 logging:
   level: 
     root: ERROR

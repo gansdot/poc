@@ -14,10 +14,10 @@ import com.poc.filter.RouteFilter;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableZuulProxy
-public class SpringBootZuulApplication {
+public class ZuulApplication {
 
 	public static void main(String... args) throws Exception {
-		SpringApplication.run(SpringBootZuulApplication.class, args);
+		SpringApplication.run(ZuulApplication.class, args);
 	}
 	
 	@Bean

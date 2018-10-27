@@ -26,7 +26,7 @@ public class CreditJdbcRepository {
 			credit.setCreditAccount(rs.getString("CREDIT_ACCOUNT"));
 			credit.setCreditAmount(rs.getDouble("CREDIT_AMOUNT"));
 			credit.setBeneficiaryName(rs.getString("BENEFICIARY_NAME"));
-			credit.setSfCaseNumber(rs.getString("SF_CASE_NUMBER"));
+			credit.setSwiftBic(rs.getString("SWIFT_BIC"));
 			credit.setCreditDatetime(rs.getString("CREDIT_DATETIME"));
 			return credit;
 		}

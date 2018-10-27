@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.poc.configuration.ForceConfiguration;
 import com.poc.jdbc.ForceclientJdbcRepository;
 import com.poc.model.ForcecaseData;
@@ -31,7 +30,7 @@ public class ForceController {
 
 	
 	@RequestMapping(value = "/collect/{caseId}", method = RequestMethod.GET)
-	@HystrixCommand(fallbackMethod = "getDataFallBack")
+	//@HystrixCommand(fallbackMethod = "getCaseDataFallBack")
 	public String forceCase(@PathVariable("caseId") String caseId) throws ConnectionException {
 		ForcecaseData data = forceConfiguration.executeForceQuery(caseId);
 		int result = repository.insert(data);
@@ -49,7 +48,6 @@ public class ForceController {
 	@RequestMapping(value = "/update/{caseId}", method = RequestMethod.PUT,consumes={"application/json","application/xml"})
 	public String collect(@RequestBody(required = false) ForcecaseData casedata) throws ConnectionException {
 		log.debug("Rest call to update status to salesforce case id {} and status {} ", casedata.getSfCaseId(), casedata.getCaseStatus());
-		//forceConfiguration.describeSObjectsSample();
 		return forceConfiguration.updateForceQuery(casedata.getSfCaseId(),casedata.getCaseStatus());
 	}
 	
@@ -58,18 +56,18 @@ public class ForceController {
 		return repository.findAll();
 	}
 	
+	@RequestMapping(value="/collect/delete/{caseId}", method = RequestMethod.DELETE)
+	public int removeCase(@PathVariable("caseId") String caseId) {
+		return repository.deleteById(caseId);
+	}
+	
 	@RequestMapping(value = "/info", method = RequestMethod.GET)
 	public String info() {
 		return "Sales Force Client (force-soap-client) microservice responsible for collecting the case related data from sales force system. These data contains all the information pertained to perform debit and credit";
 	}
 	
-	public ForcecaseData getDataFallBack() {
-
-		ForcecaseData data = new ForcecaseData();
-		data.setSfCaseId("fallback-1");
-		data.setCaseOwner("fallback-owner");
-		data.setCaseStatus("case data not retrieved");
-		return data;
+	public String getCaseDataFallBack(String caseId) {
+		return "Unavailable";
 
 	}
 

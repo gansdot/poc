@@ -5,7 +5,318 @@
   <link rel="self" href="https://spring.io/blog.atom" />
   <id>http://spring.io/blog.atom</id>
   <icon>https://spring.io/favicon.ico</icon>
-  <updated>2018-10-24T15:51:04Z</updated>
+  <updated>2018-10-26T02:52:00Z</updated>
+  <entry>
+    <title>Spring Session for Apache Geode/Pivotal GemFire 2.0.6.RELEASE and 2.1.0.RELEASE Available!</title>
+    <link rel="alternate" href="https://spring.io/blog/2018/10/26/spring-session-for-apache-geode-pivotal-gemfire-2-0-6-release-and-2-1-0-release-available" />
+    <category term="engineering" label="Engineering" />
+    <author>
+      <name>John Blum</name>
+    </author>
+    <id>tag:spring.io,2018-10-26:3449</id>
+    <updated>2018-10-26T02:52:00Z</updated>
+    <content type="html">&lt;div class="paragraph"&gt;
+&lt;p&gt;Good things come in pairs, so I am happy to announce the availability of &lt;strong&gt;&lt;em&gt;Spring Session for Apache Geode &amp;amp; Pivotal GemFire&lt;/em&gt;&lt;/strong&gt; (SSDG) &lt;code&gt;2.0.6.RELEASE&lt;/code&gt; and &lt;code&gt;2.1.0.RELEASE&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;SSDG &lt;code&gt;2.0.6.RELEASE&lt;/code&gt;, based on Spring Framework &lt;code&gt;5.0.10.RELEASE&lt;/code&gt;, Spring Data &lt;code&gt;Kay-SR11&lt;/code&gt; and Spring Session core &lt;code&gt;2.0.7.RELEASE&lt;/code&gt; mainly contains dependency updates.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;SSDG &lt;code&gt;2.1.0.RELEASE&lt;/code&gt;, on the other hand, has been upgraded to Spring Framework &lt;code&gt;5.1.1.RELEASE&lt;/code&gt;, Spring Data &lt;code&gt;Lovelace-SR1&lt;/code&gt; and Spring Session core &lt;code&gt;2.1.0.RELEASE&lt;/code&gt;, and additionally includes support for custom Session expiration policies and rules.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="custom-session-expiration-configuration"&gt;&lt;a class="anchor" href="#custom-session-expiration-configuration"&gt;&lt;/a&gt;Custom Session Expiration Configuration&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Spring Session for Apache Geode &amp;amp; Pivotal GemFire now provides a new &lt;em&gt;Strategy&lt;/em&gt; interface, &lt;a href="https://docs.spring.io/autorepo/docs/spring-session-data-geode-build/2.1.0.RELEASE/api/org/springframework/session/data/gemfire/expiration/SessionExpirationPolicy.html"&gt;&lt;code&gt;SessionExpirationPolicy&lt;/code&gt;&lt;/a&gt; that allows users to customize the rules around exactly how and when the Session should expire.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;The interface is roughly defined as:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="listingblock"&gt;
+&lt;div class="title"&gt;SessionExpirationPolicy interface&lt;/div&gt;
+&lt;div class="content"&gt;
+&lt;pre class="prettyprint highlight"&gt;&lt;code class="language-java" data-lang="java"&gt;import java.time.Duration;
+
+@FunctionalInterface
+interface SessionExpirationPolicy {
+
+  Optional&amp;lt;Duration&amp;gt; determineExpirationTimeout(Session session);
+
+  default ExpirationAction getExpirationAction() {
+    return ExpirationAction.INVALIDATE;
+  }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;A user only need implement the &lt;code&gt;determineExpirationTimeout&lt;/code&gt; method, which returns an &lt;code&gt;Optional&lt;/code&gt; &lt;code&gt;java.time.Duration&lt;/code&gt; indicating the length of time until the Session will expire.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;&lt;code&gt;Duration&lt;/code&gt; is optional so that, in certain cases, if the expiration timeout cannot be determined for a particular Session by your custom policy, then returning &lt;code&gt;Optional.empty()&lt;/code&gt; will indicate to either Apache Geode or Pivotal GemFire that the default, entry idle timeout expiration policy configured for the Region managing your application Session state should apply.  The default idle timeout is 30 minutes, which you can change by setting the &lt;a href="https://docs.spring.io/autorepo/docs/spring-session-data-geode-build/2.1.0.RELEASE/api/org/springframework/session/data/gemfire/config/annotation/web/http/EnableGemFireHttpSession.html#maxInactiveIntervalInSeconds--"&gt;maxInactiveIntervalInSeconds&lt;/a&gt; attribute of the &lt;a href="https://docs.spring.io/autorepo/docs/spring-session-data-geode-build/2.1.0.RELEASE/api/org/springframework/session/data/gemfire/config/annotation/web/http/EnableGemFireHttpSession.html"&gt;@EnableGemFireHttpSession&lt;/a&gt; annotation.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="admonitionblock tip"&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class="icon"&gt;
+&lt;div class="title"&gt;Tip&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class="content"&gt;
+Alternatively, you can set the &lt;code&gt;spring.session.data.gemfire.session.expiration.max-inactive-interval-seconds&lt;/code&gt; property in Spring Boot&amp;#8217;s &lt;code&gt;application.properties&lt;/code&gt;, or declare bean of type &lt;a href="https://docs.spring.io/autorepo/docs/spring-session-data-geode-build/2.1.0.RELEASE/api/org/springframework/session/data/gemfire/config/annotation/web/http/support/SpringSessionGemFireConfigurer.html"&gt;SpringSessionGemFireConfigurer&lt;/a&gt; in the Spring container and override the &lt;a href="https://docs.spring.io/autorepo/docs/spring-session-data-geode-build/2.1.0.RELEASE/api/org/springframework/session/data/gemfire/config/annotation/web/http/support/SpringSessionGemFireConfigurer.html#getMaxInactiveIntervalInSeconds--"&gt;getMaxInactiveIntervalInSeconds()&lt;/a&gt; method.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Then, you simply declare your custom &lt;code&gt;SessionExpirationPolicy&lt;/code&gt; instance as a bean in the Spring container and then make sure Spring Session for Apache Geode or Pivotal GemFire knows about it by setting the &lt;code&gt;sessionExpirationPolicyBeanName&lt;/code&gt; attribute of the &lt;code&gt;@EnableGemFireHttpSession&lt;/code&gt; annotation, like so:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="listingblock"&gt;
+&lt;div class="content"&gt;
+&lt;pre class="prettyprint highlight"&gt;&lt;code class="language-java" data-lang="java"&gt;@SpringBootApplication
+@EnableGemFireHttpSession(
+  sessionExpirationPolicyBeanName = "customExpirationPolicy"
+)
+class MySpringSessionApplication {
+
+  @Bean
+  SessionExpirationPolicy customExpirationPolicy(..) {
+    return new CustomExpirationPolicy(..);
+  }
+
+  ...
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Because the &lt;code&gt;SessionExpirationPolicy&lt;/code&gt; instance is a bean just like any other managed bean in the Spring container, you can configure it, however you like, injecting references to other beans and so on.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="admonitionblock tip"&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class="icon"&gt;
+&lt;div class="title"&gt;Tip&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class="content"&gt;
+Again, the bean name of the custom &lt;code&gt;SessionExpirationPolicy&lt;/code&gt; can be set in Spring Boot &lt;code&gt;application.properties&lt;/code&gt; using &lt;code&gt;spring.session.data.gemfire.session.expiration.bean-name&lt;/code&gt; or by declaring an instance of &lt;code&gt;SprinSessionGemFireConfigurer&lt;/code&gt; in the Spring container and overriding the &lt;code&gt;getSessionExpirationPolicyBeanName()&lt;/code&gt; method.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;More details can be found in the &lt;a href="https://docs.spring.io/autorepo/docs/spring-session-data-geode-build/2.1.0.RELEASE/reference/html5/#httpsession-gemfire-expiration"&gt;docs&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="fixed-duration-expiration"&gt;&lt;a class="anchor" href="#fixed-duration-expiration"&gt;&lt;/a&gt;Fixed Duration Expiration&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;In addition to allowing custom Session expiration policies and rules, out-of-the-box, Spring Session for Apache Geode &amp;amp; Pivotal GemFire provides an implementation of this interface to support fixed duration expiration timeouts.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;This is useful in situations where the Session should timeout, no matter what, after a fixed duration of time, perhaps 1 hour, only if the Session has not already idled out.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;This request actually came up in core Spring Session &lt;a href="https://github.com/spring-projects/spring-session/issues/922"&gt;Issue #922&lt;/a&gt; - "&lt;em&gt;Absolute session timeouts&lt;/em&gt;" awhile back.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;While this capability is not possible in all store providers for Spring Session, it is possible with Apache Geode or Pivotal GemFire.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Simple enable the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="listingblock"&gt;
+&lt;div class="content"&gt;
+&lt;pre class="prettyprint highlight"&gt;&lt;code class="language-java" data-lang="java"&gt;import org.springframework.session.data.gemfire.expiration.support.FixedTimeoutSessionExpirationPolicy;
+
+@SpringBootApplication
+@EnableGemFireHttpSession(
+  sessionExpirationPolicyBeanName = "fixedTimeoutExpirationPolicy"
+)
+class MySpringSessionApplication {
+
+  @Bean
+  SessionExpirationPolicy fixedDurationExpirationPolicy() {
+    return new FixedTimeoutSessionExpirationPolicyt(Duration.ofMinutes(60L));
+  }
+
+  ...
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Of course, Spring Session for Apache Geode &amp;amp; Pivotal GemFire is careful to respect the idle timeout of the Session was well.  As such, the Session will expire whenever the idle timeout or the fixed timeout has elapsed, which ever happens first.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Again, more details can be found in the &lt;a href="https://docs.spring.io/autorepo/docs/spring-session-data-geode-build/2.1.0.RELEASE/reference/html5/#httpsession-gemfire-expiration-fixed-timeout-configuration"&gt;docs&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="conclusion"&gt;&lt;a class="anchor" href="#conclusion"&gt;&lt;/a&gt;Conclusion&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;As always, feedback is very much appreciated.  Until next time, happy coding!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;&lt;a href="https://github.com/spring-projects/spring-session-data-geode"&gt;Project Page&lt;/a&gt; | &lt;a href="https://github.com/spring-projects/spring-session-data-geode/issues"&gt;Issues&lt;/a&gt; | &lt;a href="https://github.com/spring-projects/spring-session-data-geode/pulls"&gt;PR&lt;/a&gt; | &lt;a href="https://stackoverflow.com/questions/tagged/spring-session"&gt;StackOverflow&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content>
+  </entry>
+  <entry>
+    <title>Spring Cloud Data Flow 1.7 GA Released</title>
+    <link rel="alternate" href="https://spring.io/blog/2018/10/25/spring-cloud-data-flow-1-7-ga-released" />
+    <category term="releases" label="Releases" />
+    <author>
+      <name>Mark Pollack</name>
+    </author>
+    <id>tag:spring.io,2018-10-25:3448</id>
+    <updated>2018-10-25T18:32:00Z</updated>
+    <content type="html">&lt;div class="paragraph"&gt;
+&lt;p&gt;The &lt;a href="https://cloud.spring.io/spring-cloud-dataflow/"&gt;Spring Cloud Data Flow&lt;/a&gt; team is pleased to announce the release of &lt;code&gt;1.7.0&lt;/code&gt;. Follow the &lt;em&gt;Getting Started&lt;/em&gt; guides for &lt;a href="https://docs.spring.io/spring-cloud-dataflow/docs/1.7.0.RELEASE/reference/htmlsingle/#getting-started"&gt;Local Server&lt;/a&gt;, &lt;a href="https://docs.spring.io/spring-cloud-dataflow-server-cloudfoundry/docs/1.7.0.RELEASE/reference/htmlsingle/#getting-started"&gt;Cloud Foundry&lt;/a&gt;, and &lt;a href="https://docs.spring.io/spring-cloud-dataflow-server-kubernetes/docs/1.7.0.RELEASE/reference/htmlsingle/#kubernetes-getting-started"&gt;Kubernetes&lt;/a&gt;.  Look for an updated &lt;a href="https://docs.pivotal.io/scdf"&gt;Cloud Foundry Tile for SCDF&lt;/a&gt; release in the coming weeks.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="here-are-the-highlights"&gt;&lt;a class="anchor" href="#here-are-the-highlights"&gt;&lt;/a&gt;Here are the highlights&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="ulist"&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Improved UI&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Stream Application DSL&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Audit trail&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Concurrent Task Launch Limiting&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Stream and Task validation&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Force upgrade for Streams&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Task Scheduling on Kubernetes&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="improved-ui"&gt;&lt;a class="anchor" href="#improved-ui"&gt;&lt;/a&gt;Improved UI&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;The UI has a completely new look.  The navigation has moved from tabs to a left side navigation system.  This gives increased screen real estate for creating streams with the Flo designer and even more screen real estate can be obtained by minimizing the left side navigation.  There is a quick search feature that searches across all the different Data Flow categories.  Additional colors and overall theme changes have been added to make the UI look more lively.  Deeper in the core, the route management has been improved and we have increased our end to end testing coverage using BrowserStack/SauceLabs.  The property whitelisting functionality has been refined to not display all application properties by default if the whitelist is empty.  Check out the video for a UI walkthough.&lt;/p&gt;
+&lt;/div&gt;
+&lt;iframe width="560" height="315" src="https://www.youtube.com/embed/rvAr0KYXBhk?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="stream-application-dsl"&gt;&lt;a class="anchor" href="#stream-application-dsl"&gt;&lt;/a&gt;Stream Application DSL&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Not all use cases can be solved by having a linear pipeline with data flowing from source to processor to sink with a single destination connecting each application.  Some use cases require a collection of applications that have multiple input and outputs. This topology is supported in Spring Cloud Stream by using user defined binding interfaces but was not supported in Data Flow.  It is also common to have multiple inputs and outputs in Kafka Streams applications.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;In addition, not all use cases are solved using Spring Cloud Stream applications. A http gateway application that sends a synchronous request/reply message to a Kafka or RabbitMQ application can be written using only Spring Integration.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;In these cases, Data Flow can&amp;#8217;t make assumptions about the flow of data from one application to another and therefore can&amp;#8217;t set the application&amp;#8217;s destination properties as is done when using the &lt;a href="http://docs.spring.io/spring-cloud-dataflow/docs/1.7.0.RELEASE/reference/htmlsingle/#spring-cloud-dataflow-stream-intro-dsl"&gt;Stream Pipeline DSL&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;To address these use cases we have introduced the &lt;a href="http://docs.spring.io/spring-cloud-dataflow/docs/1.7.0.RELEASE/reference/htmlsingle/#spring-cloud-dataflow-stream-app-dsl"&gt;Stream Application DSL&lt;/a&gt;.  This DSL uses a &lt;code&gt;comma&lt;/code&gt;, instead of the &lt;code&gt;pipe symbol&lt;/code&gt;, to indicate that Data Flow should not configure the binding properties of the application.  Instead, the developer needs to set the appropriate deployment properties to 'wire up' the application.  An example of the DSL using the domain of the &lt;a href="https://github.com/spring-projects/spring-integration-samples/tree/master/applications/cafe"&gt;EIP Cafe example&lt;/a&gt;, is&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="listingblock"&gt;
+&lt;div class="content"&gt;
+&lt;pre&gt;dataflow:&amp;gt; stream create --definition "orderGeneratorApp, baristaApp, hotDrinkApp, coldDrinkApp" --name myCafeStream&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Where the listed applications in the DSL need to be registered as &lt;code&gt;--type app&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;In this stream, the &lt;code&gt;baristaApp&lt;/code&gt; has two output destinations intended to be consumed by the &lt;code&gt;hotDrinkApp&lt;/code&gt; and &lt;code&gt;coldDrinkApp&lt;/code&gt; respectively.  When deploying the stream, set the destination properties such that destinations match up for the desired flow of data, for example:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="listingblock"&gt;
+&lt;div class="content"&gt;
+&lt;pre&gt;app.baristaApp.spring.cloud.stream.bindings.hotDrinks.destination=hotDrinksDest
+app.baristaApp.spring.cloud.stream.bindings.coldDrinks.destination=coldDrinksDest
+app.hotDrinkApp.spring.cloud.stream.bindings.input.destination=hotDrinksDest
+app.coldDrinkApp.spring.cloud.stream.bindings.input.destination=coldDrinksDest&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Here is a video showcasing this functionality.&lt;/p&gt;
+&lt;/div&gt;
+&lt;iframe width="560" height="315" src="https://www.youtube.com/embed/g4A5Qatfln4?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="audit-trail"&gt;&lt;a class="anchor" href="#audit-trail"&gt;&lt;/a&gt;Audit Trail&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;To help answer the question "Who did what and when?" an audit trail has been introduced to store the actions taken involving schedules, streams and tasks.  For apps and schedules the create and deletion actions are audited.  For streams, the creation, deletion, deployment, undeployment, update and rollback are audited.  For tasks, the creation, launching and destory are audited.  The audit information is available in the UI to query.  Accessing audit information in the shell is forthcoming.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="imageblock"&gt;
+&lt;div class="content"&gt;
+&lt;img src="https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/master/spring-cloud-dataflow-docs/src/main/asciidoc/images/dataflow-dashboard-audit.png" alt="Audit Dashboard"&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="concurrent-task-launch-limiting"&gt;&lt;a class="anchor" href="#concurrent-task-launch-limiting"&gt;&lt;/a&gt;Concurrent Task Launch Limiting&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Spring Cloud Data Flow allows you to enforce a maximum number of concurrently running tasks to prevent the saturation of compute resources. This limit can be configured by setting the &lt;code&gt;spring.cloud.dataflow.task.maximum-concurrent-tasks&lt;/code&gt; property. The default value is 20.  You can also retrieve the current number of concurrently executing tasks though the REST endpoint &lt;code&gt;/tasks/executions/current&lt;/code&gt;.  A new &lt;a href="https://github.com/spring-cloud-stream-app-starters/tasklauncher-data-flow"&gt;tasklauncher-dataflow&lt;/a&gt; application makes use of this feature to only launch tasks if the number of concurrent tasks is below the maximum.  The feature is also at the center of a new FTP ingest sample application that is under development.  A sneak peak is available in the &lt;a href="https://www.youtube.com/watch?v=n6fS-KmN0zI"&gt;Cloud-native patterns for Data-intensive applications&lt;/a&gt; webinar&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="stream-and-task-validation"&gt;&lt;a class="anchor" href="#stream-and-task-validation"&gt;&lt;/a&gt;Stream and Task validation&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;The new shell commands &lt;code&gt;stream validate&lt;/code&gt; and &lt;code&gt;task validate&lt;/code&gt; will validate that the stream or task application resources are valid and accessable.  This avoids getting exceptions at deployment time.  Validation using the UI is forthcoming.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="force-upgrade-for-streams"&gt;&lt;a class="anchor" href="#force-upgrade-for-streams"&gt;&lt;/a&gt;Force upgrade for Streams&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;&lt;a href="https://www.youtube.com/watch?v=Sbg9k8SGppQ"&gt;Use the force!&lt;/a&gt;  When upgrading a stream, you can now use the option &lt;code&gt;--force&lt;/code&gt; to deploy new instances of currently deployed applications even if no applicaton or deployment properties have changed.  This behavior is needed in the case when configuration information is obtained by the application itself at startup time, for example from Spring Cloud Config Server. You can specify which applications to force upgrade by using the option &lt;code&gt;--app-names&lt;/code&gt;. If you do not specify any application names, all the applications will be force upgraded. You can specify &lt;code&gt;--force&lt;/code&gt; and &lt;code&gt;--app-names&lt;/code&gt; options together with &lt;code&gt;--properties&lt;/code&gt; or &lt;code&gt;--propertiesFile&lt;/code&gt; options.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="task-scheduling-on-kubernetes"&gt;&lt;a class="anchor" href="#task-scheduling-on-kubernetes"&gt;&lt;/a&gt;Task Scheduling on Kubernetes&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;Task Scheduling was introduced in Data Flow 1.6 for Cloud Foundry.  This release adds scheduling support for &lt;a href="http://docs.spring.io/spring-cloud-dataflow-server-kubernetes/docs/1.7.0.RELEASE/reference/htmlsingle/#_scheduling"&gt;scheduling of tasks on Kubernetes&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="what-is-next"&gt;&lt;a class="anchor" href="#what-is-next"&gt;&lt;/a&gt;What is next&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;The 1.7 release will be the last minor release in the 1.x series.  We will be moving onto development of 2.0 which will remove the 'classic' mode and upgrade to a Boot 2.1 based stack.  Other features are planned as well, so stay tuned.  In the meantime, expect some blog posts discussing using SCDF for FTP file ingest, interopability with Python, and application composition based on Spring Cloud Function.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="sect1"&gt;
+&lt;h2 id="stay-in-touch"&gt;&lt;a class="anchor" href="#stay-in-touch"&gt;&lt;/a&gt;Stay in touch&amp;#8230;&amp;#8203;&lt;/h2&gt;
+&lt;div class="sectionbody"&gt;
+&lt;div class="paragraph"&gt;
+&lt;p&gt;As always, we welcome feedback and contributions, so please reach out to us on &lt;a href="https://stackoverflow.com/questions/tagged/spring-cloud-dataflow"&gt;Stackoverflow&lt;/a&gt; or &lt;a href="https://github.com/spring-cloud/spring-cloud-dataflow/issues"&gt;GitHub&lt;/a&gt; or via &lt;a href="https://gitter.im/spring-cloud/spring-cloud-dataflow"&gt;Gitter&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content>
+  </entry>
   <entry>
     <title>Spring Cloud Finchley.SR2 Is Available</title>
     <link rel="alternate" href="https://spring.io/blog/2018/10/24/spring-cloud-finchley-sr2-is-available" />
@@ -1120,62 +1431,6 @@ dependencies {&#xD;
   &lt;li&gt;Spring Data Redis 1.8.16 - &lt;a href="https://repo.spring.io/libs-release/org/springframework/data/spring-data-redis/1.8.16.RELEASE"&gt;Artifacts&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/redis/docs/1.8.16.RELEASE/api"&gt;Javadoc&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/redis/docs/1.8.16.RELEASE/reference/html"&gt;Documentation&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/redis/docs/1.8.16.RELEASE/changelog.txt"&gt;Changelog&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;Spring Data Elasticsearch 2.1.16 - &lt;a href="https://repo.spring.io/libs-release/org/springframework/data/spring-data-elasticsearch/2.1.16.RELEASE"&gt;Artifacts&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/elasticsearch/docs/2.1.16.RELEASE/api"&gt;Javadoc&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/elasticsearch/docs/2.1.16.RELEASE/reference/html"&gt;Documentation&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/elasticsearch/docs/2.1.16.RELEASE/changelog.txt"&gt;Changelog&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;Spring Data Couchbase 2.2.16 - &lt;a href="https://repo.spring.io/libs-release/org/springframework/data/spring-data-couchbase/2.2.16.RELEASE"&gt;Artifacts&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/couchbase/docs/2.2.16.RELEASE/api"&gt;Javadoc&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/couchbase/docs/2.2.16.RELEASE/reference/html"&gt;Documentation&lt;/a&gt; - &lt;a href="http://docs.spring.io/spring-data/couchbase/docs/2.2.16.RELEASE/changelog.txt"&gt;Changelog&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content>
-  </entry>
-  <entry>
-    <title>Spring Framework 5.1.1, 5.0.10 and 4.3.20 available now</title>
-    <link rel="alternate" href="https://spring.io/blog/2018/10/15/spring-framework-5-1-1-5-0-10-and-4-3-20-available-now" />
-    <category term="releases" label="Releases" />
-    <author>
-      <name>Stéphane Nicoll</name>
-    </author>
-    <id>tag:spring.io,2018-10-15:3426</id>
-    <updated>2018-10-15T09:58:00Z</updated>
-    <content type="html">&lt;p&gt;On behalf of the team, I am pleased to announce that Spring Framework 5.1.1, 5.0.10 and 4.3.20 &lt;a href="http://projects.spring.io/spring-framework"&gt;are available now&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;The first maintenance release of the 5.1 line includes &lt;a href="https://jira.spring.io/secure/ReleaseNote.jspa?projectId=10000&amp;version=17148"&gt;over 30 fixes and improvements&lt;/a&gt;. Spring Framework 5.0.10 &lt;a href="https://jira.spring.io/secure/ReleaseNote.jspa?projectId=10000&amp;version=17115"&gt;also includes a wide range of 20 fixes and improvements&lt;/a&gt; while Spring Framework 4.3.20 &lt;a href="https://jira.spring.io/secure/ReleaseNote.jspa?projectId=10000&amp;version=17116"&gt;is a rather minimal patch release&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;The first release candidate of Spring Boot 2.1, based on Spring Framework 5.1.1, is around the corner! We&amp;rsquo;ll also follow up with corresponding Spring Boot 2.0.6 and 1.5.17 releases later this week.&lt;/p&gt;
-&lt;p&gt;&lt;a href="https://spring.io/projects/spring-framework"&gt;Project Page&lt;/a&gt; | &lt;a href="https://github.com/spring-projects/spring-framework"&gt;GitHub&lt;/a&gt; | &lt;a href="https://jira.spring.io/browse/SPR"&gt;Issues&lt;/a&gt; | &lt;a href="https://docs.spring.io/spring-framework/docs/5.1.1.RELEASE/spring-framework-reference"&gt;Documentation&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;2018-10-16 UPDATE:&lt;/strong&gt; The releases address a vulnerability. Please see &lt;a href="https://spring.io/blog/2018/10/16/spring-project-vulnerability-reports-published"&gt;this blog post&lt;/a&gt; published after the associated Spring Boot 2.0.6 and 1.5.17 releases.&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <title>This Week in Spring - October 9th, 2018</title>
-    <link rel="alternate" href="https://spring.io/blog/2018/10/09/this-week-in-spring-october-9th-2018" />
-    <category term="engineering" label="Engineering" />
-    <author>
-      <name>Josh Long</name>
-    </author>
-    <id>tag:spring.io,2018-10-09:3425</id>
-    <updated>2018-10-09T22:13:12Z</updated>
-    <content type="html">&lt;p&gt;Hi Spring fans! This week I&amp;rsquo;m in sunny San Francisco for the epic SpringOne Tour San Francisco event. I&amp;rsquo;m also heads down preparing for the rush of travel ahead of me. Starting on the 14th, I&amp;rsquo;ll start four weeks of travel, bringing the message far-and-wide to Toronto, St. Petersburg, Brussels, San Francisco, Hartford, Paris, Beijing, Tokyo, Singapore, Seoul, Hong Kong, and.. I forget.. but there&amp;rsquo;s more! I&amp;rsquo;m so looking forward to seeing you all at each and everyone of those places! &lt;/p&gt;
-&lt;p&gt;I also loved this tweet from Pivotal today for me:&lt;/p&gt;
-&lt;p&gt;&lt;blockquote class="twitter-tweet" data-lang="en"&gt;&lt;p lang="en" dir="ltr"&gt;Josh we&amp;#39;re working on putting a Spring signal on the roof. &lt;a href="https://t.co/OInXwcte6Y"&gt;pic.twitter.com/OInXwcte6Y&lt;/a&gt;&lt;/p&gt;&amp;mdash; Pivotal (@pivotal) &lt;a href="https://twitter.com/pivotal/status/1049719247562100736?ref_src=twsrc%5Etfw"&gt;October 9, 2018&lt;/a&gt;&lt;/blockquote&gt;&lt;br/&gt;&lt;script async src="https://platform.twitter.com/widgets.js" charset="utf-8"&gt;&lt;/script&gt;&lt;/p&gt;
-&lt;p&gt;Anyway, there&amp;rsquo;s SO MUCH to cover so let&amp;rsquo;s get to it! &lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href="https://spring.io/blog/2018/10/03/spring-cloud-open-service-broker-3-0-0-m1-released"&gt;Spring Cloud Open Service Broker 3.0.0.M1 released&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href="https://spring.io/blog/2018/10/03/spring-cloud-open-service-broker-2-1-0-m1-released"&gt;Spring Cloud Open Service Broker 2.1.0.M1 released&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;This is pretty cool! we&amp;rsquo;re excited to announce, &lt;a href="https://content.pivotal.io/blog/peace-of-mind-for-developers-and-operators-buildpacks-is-now-a-cncf-project-welcome-cloud-native-buildpacks"&gt;along with Heroku and the Cloud Native Computing Foundation&lt;/a&gt;, that the Cloud Natives Buildpacks technology was accepted int he CNCF!&lt;/li&gt;
-  &lt;li&gt;Hola mundo! Read Spanish? Know someone who does? &lt;a href="https://spring.io/blog/2018/10/03/spring-noticias-en-espa-ol-2-de-octubre-2018"&gt;You might appreciate this curated list of interesting reading, en Español!&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Happy &lt;a href="https://en.wikipedia.org/wiki/Ada_Lovelace"&gt;Ada Lovelace&lt;/a&gt; day! As you know, we name each Spring Data release train after a prominent computer scientist. This one is named for Ada Lovelace, an English mathematician and writer, she was chiefly known for her work on Charles Babbage&amp;rsquo;s proposed mechanical general-purpose computer, the Analytical Engine. Once you&amp;rsquo;re done reading more into this hero and this self described &amp;ldquo;poetical scientist&amp;rdquo;, you might also &lt;a href="https://twitter.com/springdata/status/1049696283626299393?s=12"&gt;read up on the new features our current Spring Data Lovelace release train&lt;/a&gt;!&lt;/li&gt;
-  &lt;li&gt;Check out part two of &lt;a href="http://twitter.com/rseroter"&gt;Richard Seroter&lt;/a&gt;&amp;rsquo;s epic &lt;a href="https://twitter.com/rseroter/status/1049683902766313473?s=12"&gt;series on routing in Cloud Foundry&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;I love this blog that &lt;a href="https://javatechnicalwealth.com/blog/reactive-flatmap/"&gt;looks at &lt;code&gt;flatMap&lt;/code&gt;&lt;/a&gt; in the context of reactive programming as, for example, you might use it in Pivotal&amp;rsquo;s Reactor&lt;/li&gt;
-  &lt;li&gt;Check out the &lt;a href="https://twitter.com/sdeleuze/status/1049637509066579968?s=12"&gt;new configuration styles supported in Spring Fu &lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Check out this post on &lt;a href="https://twitter.com/danotorrey/status/1049644719687503872?s=12"&gt;logging with Graylog in a Spring Boot application&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;This is an interesting new initiative! Hopefully we&amp;rsquo;ll see more videos like this &lt;a href="https://www.youtube.com/watch?v=6flKif97qb8"&gt;from community member Maciej Walkowiak&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;We want to hear from you! Check out this Github issue on JUnit 5 support with Spring Boot. Sound off! &lt;a href="https://twitter.com/olivergierke/status/1049318398512062466?s=12"&gt;We want &lt;em&gt;your&lt;/em&gt; feedback!&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Jaxenter continues its series looking at Java 11 with different folks in the Java ecosystem, including yours truly. This latest post looks at &lt;a href="https://jaxenter.com/manual-java-11-series-part-3-150308.html"&gt;some of the cleverest hacks in Java 11&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href="https://twitter.com/adrianfcole/status/1049092848484667392?s=12"&gt;this is your system on kafka and zipkin!&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;I loved this post &lt;a href="https://itwarilal.github.io/java/spring-boot/2018/10/06/boot-cassandra.html"&gt;on Cassandra schema migration with Spring Boot projects&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Check out Spring founder and &lt;a href="https://twitter.com/springrod/status/1048452702391296001?s=12"&gt;Atomist CEO Rod Johnson&amp;rsquo;s SpringOne Platform 2018 talk&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Spring Framework 5.2 looks to be a &lt;a href="https://twitter.com/rstoya05/status/1047177857863229445?s=12"&gt;heckuva release&lt;/a&gt;! It includes, among other things, RSocket and non-blocking event listeners.&lt;/li&gt;
-  &lt;li&gt;I love this Okta post, &lt;a href="https://developer.okta.com/blog/2018/10/05/build-a-spring-boot-app-with-user-authentication"&gt;&amp;ldquo;Add User Authentication to Your Spring Boot App in 15 Minutes&amp;rdquo;&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href="https://flywaydb.org/blog/flyway-5.2.0"&gt;Flyway 5.2.0 Released - Flyway 5.2.0 - Flyway by Boxfuse • Database Migrations Made Easy.&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;A nice post on &lt;a href="https://dzone.com/articles/versioning-restful-services-with-spring-boot"&gt;versioning RESTful services with Spring Boot&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Want to learn more about the motivations underpinning our support of R2DBC, an approach to reactive data access for SQL-based data stores? &lt;a href="https://twitter.com/olivergierke/status/1048159851266891777?s=12"&gt;Check this post out!&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Did you miss SpringOne Platform 2018? (Why? It was epic!) &lt;a href="https://m.youtube.com/playlist?list=PLAdzTan_eSPQsR_aqYBQxpYTEQZnjhTN6&amp;disable_polymer=true"&gt;Check out this YouTube playlist with all the videos that are up&lt;/a&gt;. Great job Pieter Humphrey!&lt;/li&gt;
-  &lt;li&gt;InfoQ have a nice post &lt;a href="https://www.infoq.com/news/2018/10/rsocket-facebook"&gt;on our initial support for RSocket&lt;/a&gt; announced at SpringOne Platform 2018. Check it out!&lt;/li&gt;
-  &lt;li&gt;Among the &lt;em&gt;many&lt;/em&gt; gems we debuted &lt;a href="https://m.youtube.com/watch?v=idApf9DMdfk"&gt;at SpringOne Platform 2018 was this gem, R2DBC, a reactive data access API for SQL datastores&lt;/a&gt;. Watch this video by R2DBC ninja Ben Hale for more.&lt;/li&gt;
-  &lt;li&gt;Check out this &lt;a href="https://www.youtube.com/watch?v=s_MEIXDo0-Q"&gt;talk introducing reactive MongoDB transactions, streaming and more&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href="https://twitter.com/cloudfoundry/status/1047864637595770881"&gt;https://twitter.com/cloudfoundry/status/1047864637595770881&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</content>
   </entry>
 </feed>

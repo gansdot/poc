@@ -1,5 +1,7 @@
 package com.poc.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,17 @@ public class DebitController {
 	public Debit getdebit(@PathVariable("caseId") String caseId) {
 		return repository.findById(caseId);
 	}
+	
+	@RequestMapping(value="/debit/delete/{caseId}", method=RequestMethod.DELETE)
+	public int removeDebit(@PathVariable("caseId") String caseId) {
+		return repository.deleteById(caseId);
+	}
+
+	@RequestMapping(value="/debit/getall", method=RequestMethod.GET)
+	public List<Debit> getAll() {
+		return repository.findAll();
+	}
+
 	
 	@RequestMapping(value = "/info", method = RequestMethod.GET)
 	public String info() {

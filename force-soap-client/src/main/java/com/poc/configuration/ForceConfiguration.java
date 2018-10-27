@@ -19,7 +19,7 @@ import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
 
 @Configuration
-public class ForceConfiguration {
+public class ForceConfiguration{
 
 	static Logger log = LoggerFactory.getLogger(ForceConfiguration.class);
 
@@ -34,6 +34,7 @@ public class ForceConfiguration {
 		return sfc;
 	}
 
+	
 	public EnterpriseConnection enterpriseConnection() throws ConnectionException {
 		log.debug("connected successfully to salesforce ");
 		return Connector.newConnection(config());
@@ -62,7 +63,7 @@ public class ForceConfiguration {
 
 		EnterpriseConnection enterpriseConnection = Connector.newConnection(config());
 		log.debug("connected successfully to salesforce ");
-		try {
+		try  {
 
 			// create case object set those values and return
 			String caseNo = "'" + caseId + "'";
@@ -99,9 +100,8 @@ public class ForceConfiguration {
 
 	}
 
-	public void describeSObjectsSample() throws ConnectionException {
+	public void describeSObjects() throws ConnectionException {
 		EnterpriseConnection enterpriseConnection = Connector.newConnection(config());
-
 		try {
 			// Call describeSObjectResults and pass it an array with
 			// the names of the objects to describe.
@@ -209,4 +209,6 @@ public class ForceConfiguration {
 		}
 
 	}
+
+
 }

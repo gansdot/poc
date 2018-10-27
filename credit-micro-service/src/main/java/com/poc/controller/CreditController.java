@@ -1,10 +1,13 @@
 package com.poc.controller;
 
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -37,6 +40,16 @@ public class CreditController {
 		}
 	}
 	
+	@RequestMapping(value="/credit/delete/{caseId}", method=RequestMethod.DELETE)
+	public int removeCredit(@PathVariable("caseId") String caseId) {
+		return creditJdbcRepository.deleteById(caseId);
+	}
+	
+	@RequestMapping(value="/credit/getall", method=RequestMethod.GET)
+	public List<Credit> getAll() {
+		return creditJdbcRepository.findAll();
+	}
+
 	@RequestMapping(value = "/info", method = RequestMethod.GET)
 	public String info() {
 		return "Credit microservice responsible for crediting the Amount to beneficiary account. This service will depends on the Debit service. After debit the amount from source account, only the credit service will do its job.";
