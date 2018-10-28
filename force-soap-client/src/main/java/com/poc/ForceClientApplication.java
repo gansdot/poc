@@ -8,7 +8,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @SpringBootApplication
 public class ForceClientApplication {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String... args) throws Exception {
 		SpringApplication.run(ForceClientApplication.class, args);
 	}
 

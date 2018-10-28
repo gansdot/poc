@@ -48,7 +48,7 @@ public class ForceController {
 	@RequestMapping(value = "/update/{caseId}", method = RequestMethod.PUT,consumes={"application/json","application/xml"})
 	public String collect(@RequestBody(required = false) ForcecaseData casedata) throws ConnectionException {
 		log.debug("Rest call to update status to salesforce case id {} and status {} ", casedata.getSfCaseId(), casedata.getCaseStatus());
-		return forceConfiguration.updateForceQuery(casedata.getSfCaseId(),casedata.getCaseStatus());
+		return forceConfiguration.updateCaseStatus(casedata.getSfCaseId(),casedata.getCaseStatus());
 	}
 	
 	@RequestMapping(value = "/collect/getall", method = RequestMethod.GET)
