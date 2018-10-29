@@ -162,7 +162,7 @@ public class CaseProcessController {
 				caseProcessResponse = "data collection failed for case : "+uniqueID;
 
 			}
-			return "case process completed";
+			return caseProcessResponse;
 		} catch (Exception e) {
 			throw new Exception(
 					"there is some issue during the fund transfer process. please check the sales force portal for more details.");
