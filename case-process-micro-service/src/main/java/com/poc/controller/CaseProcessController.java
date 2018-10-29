@@ -140,7 +140,7 @@ public class CaseProcessController {
 			
 				// inform sales force that salesforce data retrieve failure
 				audit = buildAudit(uniqueID, "datacollect-service", sfdata.getBody(), buildRequest(uniqueID, "SOAP call to fetch case data and found that case not ready state", sfdata.getBody()));
-				client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
+				client.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 				ForcecaseData updateCase = buildCaseData(uniqueID, "case-not-ready");
 				client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
 						HttpMethod.PUT);
@@ -149,7 +149,7 @@ public class CaseProcessController {
 			} else {
 				// inform sales force that salesforce data retrieve failure
 				audit = buildAudit(uniqueID, "datacollect-service", sfdata.getBody(), buildRequest(uniqueID, "SOAP call to fetch case data failed and option available for retrigger", sfdata.getBody()));
-				client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
+				client.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 				ForcecaseData updateCase = buildCaseData(uniqueID, "datacollection-failed");
 				client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
 						HttpMethod.PUT);

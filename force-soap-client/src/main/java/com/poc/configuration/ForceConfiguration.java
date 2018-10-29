@@ -49,6 +49,7 @@ public class ForceConfiguration{
 		dataCollect.setDebitAmount(cse.getAmount__c());
 		dataCollect.setDebitDescription(cse.getDescription());
 		dataCollect.setSwiftBic(cse.getSwift_BIC__c());
+		dataCollect.setCaseStatus(cse.getStatus());
 		log.debug("salesforce object is converted to conventioal object for microservice ");
 		return dataCollect;
 

@@ -5,12 +5,19 @@ server:
   port: 8080
   
 eureka:
+  enabled: true
   client:
     service-url:
       defaultZone: http://localhost:8090/eureka/
 
 zuul:
   #Service will be mapped under the /api URI
+  host:
+    max-total-connections: 1000
+    max-per-route-connections: 100
+  semaphore:
+    max-semaphores: 500
+
   prefix: /api
   routes:
     audit-service:
@@ -28,3 +35,15 @@ zuul:
     case-process:
       path: /process/**
       url: CASE-PROCESS
+      
+ribbon:
+    ReadTimeout: 90000
+    ConnectTimeout: 90000
+
+hystrix:
+    command:
+        default:
+            execution:
+                isolation:
+                    thread:
+                        timeoutInMilliseconds: 1000000      
