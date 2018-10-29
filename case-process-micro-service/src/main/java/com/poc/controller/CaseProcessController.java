@@ -26,6 +26,7 @@ public class CaseProcessController {
 
 	static Logger log = LoggerFactory.getLogger(CaseProcessController.class);
 
+	String caseProcessResponse = "completed";
 	@Autowired
 	MyClients client;
 
@@ -107,12 +108,13 @@ public class CaseProcessController {
 							client.invokeService("/audit/create", "audit-service", String.class, audit,
 									HttpMethod.POST);
 							log.debug("case successfully completed and udpated in salesforce for case : {} ", uniqueID);
+							caseProcessResponse = "case successfully completed and udpated in salesforce for case";
 						} else {
 							audit = buildAudit(uniqueID, "forcedata-service", "failed", buildRequest(uniqueID, "SOAP call to salesforce failed on case update", "failed"));
 							client.invokeService("/audit/create", "audit-service", String.class, audit,
 									HttpMethod.POST);
 							log.debug("update case failed in salesforce for case : {} ", uniqueID);
-
+							caseProcessResponse = "update case failed in salesforce for case ";
 						}
 
 					} else { // credit failure
@@ -124,6 +126,7 @@ public class CaseProcessController {
 						client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
 								HttpMethod.PUT);
 						log.debug("credit transaction failed for case : {} ", uniqueID);
+						caseProcessResponse = "credit transaction failed for case : "+uniqueID;
 					}
 
 				} else { // debit failure
@@ -135,6 +138,7 @@ public class CaseProcessController {
 					client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
 							HttpMethod.PUT);
 					log.debug("debit transaction failed for case : {} ", uniqueID);
+					caseProcessResponse = "debit transaction failed for case : "+uniqueID;
 				}
 			} else if(sfdata.getBody().equals("notready")) {
 			
@@ -144,7 +148,8 @@ public class CaseProcessController {
 				ForcecaseData updateCase = buildCaseData(uniqueID, "case-not-ready");
 				client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
 						HttpMethod.PUT);
-				log.debug("data collection failed for case : {} ", uniqueID);
+				log.debug("sales force case is not yet approved for the case  : {} ", uniqueID);
+				caseProcessResponse = "sales force case is not yet approved for the case : "+uniqueID;
 
 			} else {
 				// inform sales force that salesforce data retrieve failure
@@ -154,6 +159,7 @@ public class CaseProcessController {
 				client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
 						HttpMethod.PUT);
 				log.debug("data collection failed for case : {} ", uniqueID);
+				caseProcessResponse = "data collection failed for case : "+uniqueID;
 
 			}
 			return "case process completed";
