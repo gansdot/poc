@@ -8,7 +8,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDiscoveryClient
 public class DebitApplication {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String... args) throws Exception {
 		SpringApplication.run(DebitApplication.class, args);
 	}
 

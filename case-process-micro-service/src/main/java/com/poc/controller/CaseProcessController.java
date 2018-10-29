@@ -65,7 +65,7 @@ public class CaseProcessController {
 				audit = buildAudit(uniqueID, "debit-service", "new", buildRequest(uniqueID, "call to debit system debit transaction", "new"));
 				client.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
-				// get the case da                                                                    ta
+				// get the case data
 				ResponseEntity<ForcecaseData> casedata = client.invokeService("/select/" + uniqueID,
 						"forcedata-service", ForcecaseData.class, null, HttpMethod.GET);
 				// now build debit data and call debit service to debit the
@@ -136,9 +136,18 @@ public class CaseProcessController {
 							HttpMethod.PUT);
 					log.debug("debit transaction failed for case : {} ", uniqueID);
 				}
+			} else if(sfdata.getBody().equals("notready")) {
+			
+				// inform sales force that salesforce data retrieve failure
+				audit = buildAudit(uniqueID, "datacollect-service", sfdata.getBody(), buildRequest(uniqueID, "SOAP call to fetch case data and found that case not ready state", sfdata.getBody()));
+				client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
+				ForcecaseData updateCase = buildCaseData(uniqueID, "case-not-ready");
+				client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
+						HttpMethod.PUT);
+				log.debug("data collection failed for case : {} ", uniqueID);
 
 			} else {
-				// inform sales force that salesforce data retrive failure
+				// inform sales force that salesforce data retrieve failure
 				audit = buildAudit(uniqueID, "datacollect-service", sfdata.getBody(), buildRequest(uniqueID, "SOAP call to fetch case data failed and option available for retrigger", sfdata.getBody()));
 				client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 				ForcecaseData updateCase = buildCaseData(uniqueID, "datacollection-failed");
