@@ -23,13 +23,13 @@ public class ForceclientJdbcRepository {
 		public ForcecaseData mapRow(ResultSet rs, int rowNum) throws SQLException {
 			ForcecaseData dataCollect = new ForcecaseData();
 			dataCollect.setCaseId(rs.getInt("CASE_ID"));
-			dataCollect.setCaseNumber(rs.getString("SF_CASE_NUMBER"));
+			dataCollect.setSfCaseId(rs.getString("SF_CASE_ID"));
+			dataCollect.setCaseNumber(rs.getString("SF_CASE_NUMBER"));			
 			dataCollect.setCaseOwner(rs.getString("CASE_OWNER"));
 			dataCollect.setDebitAccount(rs.getString("DEBIT_ACCOUNT"));
 			dataCollect.setDebitAmount(rs.getDouble("DEBIT_AMOUNT"));
 			dataCollect.setDebitDescription(rs.getString("DEBIT_DESCRIPTION"));
 			dataCollect.setCreditAccount(rs.getString("CREDIT_ACCOUNT"));
-			dataCollect.setSfCaseId(rs.getString("SF_CASE_ID"));
 			dataCollect.setBeneficiaryName(rs.getString("BENEFICIARY_NAME"));
 			dataCollect.setCaseDatetime(rs.getString("CASE_DATETIME"));
 			dataCollect.setEffectiveDate(rs.getString("EFFECTIVE_DATE"));
@@ -43,13 +43,13 @@ public class ForceclientJdbcRepository {
 		return jdbcTemplate.query("select * from POC.DATA_COLLECTION", new ForcecaseDataRowMapper());
 	}
 
-	public ForcecaseData findById(String caseId) {
-		return jdbcTemplate.queryForObject("select * from POC.DATA_COLLECTION where SF_CASE_ID=?", new Object[] { caseId },
+	public ForcecaseData findById(String caseNumber) {
+		return jdbcTemplate.queryForObject("select * from POC.DATA_COLLECTION where SF_CASE_NUMBER = ?", new Object[] { caseNumber },
 				new BeanPropertyRowMapper<ForcecaseData>(ForcecaseData.class));
 	}
 
 	public int deleteById(String id) {
-		return jdbcTemplate.update("delete from POC.DATA_COLLECTION where SF_CASE_ID=?", new Object[] { id });
+		return jdbcTemplate.update("delete from POC.DATA_COLLECTION where SF_CASE_NUMBER = ?", new Object[] { id });
 	}
 
 	public int insert(ForcecaseData dataCollect) {
@@ -64,7 +64,7 @@ public class ForceclientJdbcRepository {
 	}
 
 	public int update(ForcecaseData dataCollect) {
-		return jdbcTemplate.update("update POC.DATA_COLLECTION " + " set DEBIT_AMOUNT = ? where SF_CASE_ID = ?",
+		return jdbcTemplate.update("update POC.DATA_COLLECTION " + " set DEBIT_AMOUNT = ? where SF_CASE_NUMBER = ?",
 				new Object[] { dataCollect.getDebitAmount(), dataCollect.getSfCaseId() });
 	}
 

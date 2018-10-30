@@ -30,7 +30,7 @@ public class ForceController {
 	@RequestMapping(value = "/collect/{caseId}", method = RequestMethod.GET)
 	// @HystrixCommand(fallbackMethod = "getCaseDataFallBack")
 	public String forceCase(@PathVariable("caseId") String caseId) throws ConnectionException {
-		ForcecaseData data = forceConfiguration.executeForceQuery(caseId);
+		ForcecaseData data = forceConfiguration.executeSelectQuery(caseId);
 		if (data.getCaseStatus().equalsIgnoreCase("Approved")) {
 			int result = repository.insert(data);
 			if (result > 0)
@@ -53,7 +53,7 @@ public class ForceController {
 	public String collect(@RequestBody(required = false) ForcecaseData casedata) throws ConnectionException {
 		log.debug("Rest call to update status to salesforce case id {} and status {} ", casedata.getSfCaseId(),
 				casedata.getCaseStatus());
-		return forceConfiguration.updateCaseStatus(casedata.getSfCaseId(), casedata.getCaseStatus());
+		return forceConfiguration.updateCaseStatus(casedata.getCaseNumber(), casedata.getCaseStatus(),casedata.getDescription());
 	}
 
 	@RequestMapping(value = "/collect/getall", method = RequestMethod.GET)

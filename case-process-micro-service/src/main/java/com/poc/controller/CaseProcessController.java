@@ -41,13 +41,13 @@ public class CaseProcessController {
 			// register microservice will be called after successful approval of
 			// the request.
 
-			String uniqueID = caseId;
+			String caseNumber = caseId;
 
-			log.debug("unique case id from salesfroce ***************** {} ", uniqueID);
+			log.debug("unique case number from salesfroce ***************** {} ", caseNumber);
 
 			// call data collection service here along with audit the case
 
-			Audit audit = buildAudit(uniqueID, "forcedata-service", "new", buildRequest(uniqueID, "SOAP call to salesforce to fetch case data", "new"));
+			Audit audit = buildAudit(caseNumber, "forcedata-service", "new", buildRequest(caseNumber, "SOAP call to salesforce to fetch case data", "new"));
 			client.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
 			ResponseEntity<String> sfdata = client.invokeService("/collect/" + caseId, "forcedata-service",String.class, caseId, HttpMethod.GET);
@@ -58,108 +58,102 @@ public class CaseProcessController {
 
 			if (sfdata.getBody().equals("success")) {
 
-				audit = buildAudit(uniqueID, "forcedata-service", "success", buildRequest(uniqueID, "SOAP call to salesforce to fetch case data", "success"));
+				audit = buildAudit(caseNumber, "forcedata-service", "success", buildRequest(caseNumber, "SOAP call to salesforce to fetch case data succeeded", "success"));
 				client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 
 				// after getting case data, call the debit service
 				// just audit the data before proceed with debit service
-				audit = buildAudit(uniqueID, "debit-service", "new", buildRequest(uniqueID, "call to debit system debit transaction", "new"));
+				audit = buildAudit(caseNumber, "debit-service", "new", buildRequest(caseNumber, "call to debit system debit transaction", "new"));
 				client.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
 				// get the case data
-				ResponseEntity<ForcecaseData> casedata = client.invokeService("/select/" + uniqueID,
+				ResponseEntity<ForcecaseData> casedata = client.invokeService("/select/" + caseNumber,
 						"forcedata-service", ForcecaseData.class, null, HttpMethod.GET);
 				// now build debit data and call debit service to debit the
 				// amount from the account
-				Debit debitdata = buildDebitData(uniqueID, casedata);
+				Debit debitdata = buildDebitData(caseNumber, casedata);
 				ResponseEntity<String> debitresponse = client.invokeService("/debit/ac", "debit-service", String.class,
 						debitdata, HttpMethod.POST);
 
 				if (debitresponse.getBody().equals("success")) {
 
 					// log the audit of debit service success
-					audit = buildAudit(uniqueID, "debit-service", "success", buildRequest(uniqueID, "transaction successfully completed from debit account", "success"));
+					audit = buildAudit(caseNumber, "debit-service", "success", buildRequest(caseNumber, "transaction successfully completed from debit account", "success"));
 					client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 
 					// log audit for credit service with "New" status
-					audit = buildAudit(uniqueID, "credit-service", "new", buildRequest(uniqueID, "call to credit system for credit amount", "new"));
+					audit = buildAudit(caseNumber, "credit-service", "new", buildRequest(caseNumber, "call to credit system for credit amount", "new"));
 					client.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
 
 					// prepare credit data using case data for credit service
 					// invocation
-					Credit creditdata = buildCreditData(uniqueID, casedata);
+					Credit creditdata = buildCreditData(caseNumber, casedata);
 					// start the credit process on beneficiary account
 					ResponseEntity<String> creditresponse = client.invokeService("/credit/ac", "credit-service",
 							String.class, creditdata, HttpMethod.POST);
 
 					if (creditresponse.getBody().equals("success")) {
 
-						audit = buildAudit(uniqueID, "credit-service", "success", buildRequest(uniqueID, "credit transaction successfully completed", "success"));
+						audit = buildAudit(caseNumber, "credit-service", "success", buildRequest(caseNumber, "credit transaction successfully completed", "success"));
 						client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
 						// close the case with salesforce
 						// call salesforce client here
-						ForcecaseData updateCase = buildCaseData(uniqueID, "credit-success");
-						ResponseEntity<String> caseupdate = client.invokeService("/update/" + uniqueID,
+						ForcecaseData updateCase = buildCaseData(caseNumber, "Closed","Successfully completed. System update and no action required");
+						ResponseEntity<String> caseupdate = client.invokeService("/update/" + caseNumber,
 								"forcedata-service", String.class, updateCase, HttpMethod.PUT);
-						log.debug("credit transaction successfully completed for case : {} ", uniqueID);
+						log.debug("credit transaction successfully completed for case : {} ", caseNumber);
 
-						if (caseupdate.equals("success")) {
-							audit = buildAudit(uniqueID, "forcedata-service", "completed", buildRequest(uniqueID, "SOAP call to salesforce to close the case", "success"));
+						if (caseupdate.getBody().equals("success")) {
+							audit = buildAudit(caseNumber, "forcedata-service", "completed", buildRequest(caseNumber, "SOAP call to salesforce to Close the case was success", "success"));
 							client.invokeService("/audit/create", "audit-service", String.class, audit,
 									HttpMethod.POST);
-							log.debug("case successfully completed and udpated in salesforce for case : {} ", uniqueID);
-							caseProcessResponse = "case successfully completed and udpated in salesforce for case";
+							log.debug("case successfully completed and udpated in salesforce for case : {} ", caseNumber);
+							caseProcessResponse = "case successfully completed and udpated in salesforce, case : "+caseNumber;
 						} else {
-							audit = buildAudit(uniqueID, "forcedata-service", "failed", buildRequest(uniqueID, "SOAP call to salesforce failed on case update", "failed"));
+							audit = buildAudit(caseNumber, "forcedata-service", "failed", buildRequest(caseNumber, "SOAP call to salesforce failed for the case update", "failed"));
 							client.invokeService("/audit/create", "audit-service", String.class, audit,
 									HttpMethod.POST);
-							log.debug("update case failed in salesforce for case : {} ", uniqueID);
+							log.debug("update case failed in salesforce for case : {} ", caseNumber);
 							caseProcessResponse = "update case failed in salesforce for case ";
 						}
 
 					} else { // credit failure
 
 						// inform the salesforce
-						audit = buildAudit(uniqueID, "credit-service", "failed", buildRequest(uniqueID, "credit transaction failed for some reason and pushed to manual intervention", "failed"));
+						audit = buildAudit(caseNumber, "credit-service", "failed", buildRequest(caseNumber, "credit transaction failed for some reason and pushed to manual intervention", "failed"));
 						client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
-						ForcecaseData updateCase = buildCaseData(uniqueID, "credit-failed");
-						client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
+						ForcecaseData updateCase = buildCaseData(caseNumber, "Rejected","Credit Transaction failed. Parked/Rejected and manual intervention required");
+						client.invokeService("/update/" + caseNumber, "forcedata-service", String.class, updateCase,
 								HttpMethod.PUT);
-						log.debug("credit transaction failed for case : {} ", uniqueID);
-						caseProcessResponse = "credit transaction failed for case : "+uniqueID;
+						log.debug("credit transaction failed for case : {} ", caseNumber);
+						caseProcessResponse = "credit transaction failed for case : "+caseNumber;
 					}
 
 				} else { // debit failure
 
 					// stop the process and inform salesforce
-					audit = buildAudit(uniqueID, "debit-service", "failed", buildRequest(uniqueID, "debit transaction failed for some reason and pushed to manual intervention", "failed"));
+					audit = buildAudit(caseNumber, "debit-service", "failed", buildRequest(caseNumber, "debit transaction failed for some reason and pushed to manual intervention", "failed"));
 					client.invokeService("/audit/update", "audit-service", String.class, audit, HttpMethod.POST);
-					ForcecaseData updateCase = buildCaseData(uniqueID, "debit-failed");
-					client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
+					ForcecaseData updateCase = buildCaseData(caseNumber, "Rejected","Debit Transaction failed. Parked/Rejected and manual intervention required");
+					client.invokeService("/update/" + caseNumber, "forcedata-service", String.class, updateCase,
 							HttpMethod.PUT);
-					log.debug("debit transaction failed for case : {} ", uniqueID);
-					caseProcessResponse = "debit transaction failed for case : "+uniqueID;
+					log.debug("debit transaction failed for case : {} ", caseNumber);
+					caseProcessResponse = "debit transaction failed for case : "+caseNumber;
 				}
 			} else if(sfdata.getBody().equals("notready")) {
 			
 				// inform sales force that salesforce data retrieve failure
-				audit = buildAudit(uniqueID, "datacollect-service", sfdata.getBody(), buildRequest(uniqueID, "SOAP call to fetch case data and found that case not ready state", sfdata.getBody()));
+				audit = buildAudit(caseNumber, "datacollect-service", sfdata.getBody(), buildRequest(caseNumber, "SOAP call to fetch case data and found that case not ready state", sfdata.getBody()));
 				client.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
-				ForcecaseData updateCase = buildCaseData(uniqueID, "case-not-ready");
-				client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
-						HttpMethod.PUT);
-				log.debug("sales force case is not yet approved for the case  : {} ", uniqueID);
-				caseProcessResponse = "sales force case is not yet approved for the case : "+uniqueID;
+				log.debug("sales force case is not yet approved for the case  : {} ", caseNumber);
+				caseProcessResponse = "sales force case is not yet approved for the case : "+caseNumber;
 
 			} else {
 				// inform sales force that salesforce data retrieve failure
-				audit = buildAudit(uniqueID, "datacollect-service", sfdata.getBody(), buildRequest(uniqueID, "SOAP call to fetch case data failed and option available for retrigger", sfdata.getBody()));
+				audit = buildAudit(caseNumber, "datacollect-service", sfdata.getBody(), buildRequest(caseNumber, "SOAP call to fetch case data failed and option available for retrigger", sfdata.getBody()));
 				client.invokeService("/audit/create", "audit-service", String.class, audit, HttpMethod.POST);
-				ForcecaseData updateCase = buildCaseData(uniqueID, "datacollection-failed");
-				client.invokeService("/update/" + uniqueID, "forcedata-service", String.class, updateCase,
-						HttpMethod.PUT);
-				log.debug("data collection failed for case : {} ", uniqueID);
-				caseProcessResponse = "data collection failed for case : "+uniqueID;
+				log.debug("data collection failed for case : {} ", caseNumber);
+				caseProcessResponse = "data collection failed for case : "+caseNumber;
 
 			}
 			return caseProcessResponse;
@@ -172,7 +166,7 @@ public class CaseProcessController {
 
 	private Debit buildDebitData(String uniqueID, ResponseEntity<ForcecaseData> debitdata) {
 		Debit debit = new Debit();
-		debit.setSfCaseId(uniqueID);
+		debit.setSfCaseId(debitdata.getBody().getSfCaseId());
 		debit.setCaseNumber(debitdata.getBody().getCaseNumber());
 		debit.setCaseOwner(debitdata.getBody().getCaseOwner());
 		debit.setDebitAccount(debitdata.getBody().getDebitAccount());
@@ -184,7 +178,7 @@ public class CaseProcessController {
 
 	private Credit buildCreditData(String uniqueID, ResponseEntity<ForcecaseData> casedata) {
 		Credit credit = new Credit();
-		credit.setSfCaseId(uniqueID);
+		credit.setSfCaseId(casedata.getBody().getSfCaseId());
 		credit.setSfCaseNumber(casedata.getBody().getCaseNumber());
 		credit.setCreditAccount(casedata.getBody().getCreditAccount());
 		credit.setCreditAmount(casedata.getBody().getDebitAmount());
@@ -194,10 +188,11 @@ public class CaseProcessController {
 		return credit;
 	}
 
-	private ForcecaseData buildCaseData(String uniqueID, String status) {
+	private ForcecaseData buildCaseData(String caseNumber, String status, String desc) {
 		ForcecaseData casedt = new ForcecaseData();
-		casedt.setSfCaseId(uniqueID);
+		casedt.setCaseNumber(caseNumber);
 		casedt.setCaseStatus(status);
+		casedt.setDescription(desc);
 		return casedt;
 	}
 
@@ -211,7 +206,7 @@ public class CaseProcessController {
 
 	private Audit buildAudit(String uniqueID, String serviceName, String status, String reqData) {
 		Audit audit = new Audit();
-		audit.setSfCaseId(uniqueID);
+		audit.setCaseNumber(uniqueID);
 		audit.setReqData(reqData);
 		audit.setReqDatetime(DateTime.now().toString());
 		audit.setTnxName(serviceName);

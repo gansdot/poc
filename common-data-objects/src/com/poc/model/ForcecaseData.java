@@ -81,6 +81,13 @@ public class ForcecaseData {
 		this.caseStatus = caseStatus;
 	}
 	
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	private Integer caseId;
 	private String caseOwner;
 	private String effectiveDate;
@@ -94,6 +101,7 @@ public class ForcecaseData {
 	private String swiftBic;
     private String caseDatetime;
     private String caseStatus;
+    private String description;
 	
 
 }

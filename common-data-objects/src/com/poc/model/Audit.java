@@ -8,17 +8,17 @@ public class Audit {
 	public void setAuditId(Integer auditId) {
 		this.auditId = auditId;
 	}
-	public String getSfCaseId() {
-		return sfCaseId;
-	}
-	public void setSfCaseId(String sfCaseId) {
-		this.sfCaseId = sfCaseId;
-	}
 	public String getTnxName() {
 		return tnxName;
 	}
 	public void setTnxName(String tnxName) {
 		this.tnxName = tnxName;
+	}
+	public String getCaseNumber() {
+		return caseNumber;
+	}
+	public void setCaseNumber(String caseNumber) {
+		this.caseNumber = caseNumber;
 	}
 	public String getTnxStatus() {
 		return tnxStatus;
@@ -51,8 +51,9 @@ public class Audit {
 		this.resDatetime = resDatetime;
 	}
 	private Integer auditId;
-	private String sfCaseId;
+
 	private String tnxName;
+	private String caseNumber;
 	private String tnxStatus;
 	private String reqData;
 	private String reqDatetime;
